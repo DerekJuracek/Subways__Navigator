@@ -136,13 +136,16 @@ require([
     listItem.style.fontWeight = "bold";
     listItem.label = itemsLabel;
 
-    const thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
+    let thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
+    console.log(thumbnailUrl);
+
+    //mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Access_Intrusion/MapServer/info/thumbnail
 
     // Create an img element to hold the thumbnail
-    const thumbnailImage = document.createElement("img");
+    https: thumbnailImage = document.createElement("img");
     thumbnailImage.src = thumbnailUrl;
-    thumbnailImage.style.width = "50px"; // Adjust as necessary
-    thumbnailImage.style.height = "50px"; // Adjust as necessary
+    thumbnailImage.style.width = "50"; // Adjust as necessary
+    thumbnailImage.style.height = "50"; // Adjust as necessary
     thumbnailImage.slot = "content-start"; // This will position it on the left
     listItem.appendChild(thumbnailImage);
 
