@@ -7,6 +7,8 @@ require([
   "esri/portal/PortalGroup",
   "esri/widgets/FeatureTable",
   "esri/layers/CSVLayer",
+  "esri/request",
+  "esri/layers/support/Field",
   "esri/layers/FeatureLayer",
   "esri/layers/GraphicsLayer",
   "esri/views/MapView",
@@ -34,6 +36,8 @@ require([
   PortalGroup,
   FeatureTable,
   CSVLayer,
+  request,
+  Field,
   FeatureLayer,
   GraphicsLayer,
   MapView,
@@ -62,14 +66,26 @@ require([
 
   const graphicsLayer = new GraphicsLayer();
 
+  const portalUrl = esriConfig.portalUrl;
+
+  document.getElementById("uploadForm").addEventListener("change", (event) => {
+    const fileName = event.target.value.toLowerCase();
+
+    if (fileName.indexOf(".zip") !== -1) {
+      //is file a zip - if not notify user
+      generateFeatureCollection(fileName);
+    } else {
+      document.getElementById("upload-status").innerHTML =
+        '<p style="color:red">Add shapefile as .zip file</p>';
+    }
+  });
+
   const webmap = new WebMap({
     portalItem: {
       id: webmapId,
     },
     layers: [graphicsLayer],
   });
-
-  console.log(webmap);
 
   const view = new MapView({
     container: "viewDiv",
@@ -86,10 +102,77 @@ require([
     },
   });
 
-  // const layer2 = view.map.allLayers;
-  // console.log(layer2);
+  const folderUrl =
+    "https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=7ZLS1Xy7UatiHSSx_8OyRuZ7Rrqcxc9Pe6Cdye4NK3VTkeHOwV57w4v1pjUtWMvhhZhQb86LBq9PEEMQnB-W7eeOKeY6Pw147rGPvDqLD4yyrG-PjZbeRLQqh5pJd73Gf90Iz1LWP-J2HVVqrt4i4uWGcP_YRMOzVtUmDEy8u4aSXlM8OGOlYQJHTr4VMno-Gf9LJGPi_DEr04DbxzOfJLdwqeYH3LbuDkDtYaKnRLg.";
 
-  // Helper function to parse URL query parameters
+  fetch(folderUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Folder data:", data);
+
+      if (data.services) {
+        data.services.forEach((service) => {
+          const listItem = createCalciteListItem(service);
+          document.getElementById("featureServiceList").appendChild(listItem);
+          console.log("Feature service:", service);
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching folder:", error);
+    });
+
+  function createCalciteListItem(service) {
+    const listItem = document.createElement("calcite-list-item");
+    // listItem.display.style.width = "250px";
+    itemsName = service.name.split("/")[1];
+    itemsLabel = itemsName.replaceAll("_", " ");
+    listItem.style.fontWeight = "bold";
+    listItem.label = itemsLabel;
+
+    // listItem.label = itemsName;
+
+    const action = document.createElement("calcite-action");
+    action.slot = "actions-end";
+    action.icon = "add-layer";
+    action.text = service.name;
+    listItem.appendChild(action);
+
+    // Add event listener to calcite-action
+    action.addEventListener("click", function () {
+      console.log("add data button clicked for", service.name);
+      if (service.layer) {
+        // Remove the layer
+        webmap.remove(service.layer);
+        service.layer = null;
+        view.graphics.removeAll();
+        action.icon = "add-layer";
+      } else {
+        // Add the layer
+        addLayer(service);
+        action.icon = "minus-circle";
+      }
+    });
+
+    return listItem;
+  }
+
+  function addLayer(service) {
+    itemsName = service.name.split("/")[1];
+    // Create a new FeatureLayer using the service URL
+    service.layer = new FeatureLayer({
+      url: `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/${itemsName}/MapServer/`,
+    });
+    console.log(service.layer);
+
+    // Add the layer to the webmap
+    webmap.add(service.layer);
+  }
 
   function getQueryParams() {
     const queryParams = {};
@@ -206,13 +289,15 @@ require([
     let min = [currentState.xmin, currentState.ymin];
     let max = [currentState.xmax, currentState.ymax];
     // console.log(shareURL);
-    console.log(currentState);
-    console.log(min);
-    console.log(max);
+    // console.log(currentState);
+    // console.log(min);
+    // console.log(max);
 
     let newHrefValue = `https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=${min}%2C${max}%2C102100`;
     anchor.setAttribute("href", newHrefValue);
-    console.log();
+    anchor.textContent = newHrefValue;
+
+    console.log(anchor);
     // shareURL.textContent = newHrefValue;
   });
 
@@ -260,23 +345,6 @@ require([
       .addEventListener("click", function (event) {
         updateLayout();
       });
-
-    collapseButton.addEventListener("click", function (event) {
-      event.stopPropagation();
-
-      let attributeBar = document.getElementById("attributeBar");
-
-      if (attributeBar.classList.contains("collapsed")) {
-        attributeBar.style.height = "250px";
-        attributeBar.classList.remove("collapsed");
-        // this.textContent = "Attribute Table";
-      } else {
-        attributeBar.style.height = "0px";
-        attributeBar.classList.add("collapsed");
-        // this.textContent = "Attribute Table";
-      }
-      updateLayout();
-    });
   };
 
   let featureTable;
@@ -299,10 +367,13 @@ require([
         layer: layer,
         container: tableContainer,
         visible: true,
+        // editingEnabled: true,
+        highlightEnabled: true,
       });
+
       attributeBar.style.height = "250px";
       // view.padding = { bottom: 196 };
-      console.log(featureTable);
+      console.log(featureTable.highlightEnabled);
     } else {
       featureTable.destroy();
       featureTable = null;
@@ -403,123 +474,218 @@ require([
     csvFileInput.value = "";
   }
   // add data code
+  const fileForm = document.getElementById("mainWindow");
 
-  let addDataPower = document.getElementById("powerSubstationsAction");
-  let addDataComm = document.getElementById("commAction");
-  let addDataFan = document.getElementById("fanAction");
-  let addDataSpans = document.getElementById("spanAction");
+  // const expand = new Expand({
+  //   expandIconClass: "esri-icon-upload",
+  //   view: view,
+  //   content: fileForm,
+  // });
 
-  addDataPower.addEventListener("click", function () {
-    console.log("add data button clicked");
-    if (powerSubsLayer) {
-      // map.removeAll();
-      webmap.remove(powerSubsLayer);
-      powerSubsLayer = null;
-      view.graphics.removeAll();
-      addDataPower.icon = "add-layer";
-      // featureLayer.destroy();
-      // featureLayer = null;
-      // view.graphics.removeAll();
-    } else {
-      addFeatureLayer();
-      addDataPower.icon = "minus-circle";
-    }
-  });
+  // code to upload zipped shapefile
 
-  let powerSubsLayer = null;
+  function generateFeatureCollection(fileName) {
+    let name = fileName.split(".");
+    // Chrome adds c:akepath to the value - we need to remove it
+    name = name[0].replace(`c:\fakepath\", ""`);
 
-  function addFeatureLayer() {
-    // Carbon storage of trees in Warren Wilson College.
-    powerSubsLayer = new FeatureLayer({
-      url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Power_Substations/MapServer/0",
-    });
+    document.getElementById("upload-status").innerHTML =
+      "<b>Loading </b>" + name;
 
-    webmap.add(powerSubsLayer);
+    // define the input params for generate see the rest doc for details
+    // https://developers.arcgis.com/rest/users-groups-and-items/generate.htm
+    const params = {
+      name: name,
+      targetSR: view.spatialReference,
+      maxRecordCount: 1000,
+      enforceInputFileSizeLimit: true,
+      enforceOutputJsonSizeLimit: true,
+    };
+
+    // generalize features to 10 meters for better performance
+    params.generalize = true;
+    params.maxAllowableOffset = 10;
+    params.reducePrecision = true;
+    params.numberOfDigitsAfterDecimal = 0;
+
+    const myContent = {
+      filetype: "shapefile",
+      publishParameters: JSON.stringify(params),
+      f: "json",
+    };
+
+    // use the REST generate operation to generate a feature collection from the zipped shapefile
+    request(portalUrl + "/sharing/rest/content/features/generate", {
+      query: myContent,
+      body: document.getElementById("uploadForm"),
+      responseType: "json",
+    })
+      .then((response) => {
+        const layerName =
+          response.data.featureCollection.layers[0].layerDefinition.name;
+        document.getElementById("upload-status").innerHTML =
+          "<b>Loaded: </b>" + layerName;
+        addShapefileToMap(response.data.featureCollection);
+      })
+      .catch(errorHandler);
   }
 
-  addDataComm.addEventListener("click", function () {
-    console.log("add data button clicked");
-    if (commsLayer) {
-      // map.removeAll();
-      webmap.remove(commsLayer);
-      commsLayer = null;
-      view.graphics.removeAll();
-      addDataComm.icon = "add-layer";
-      // featureLayer.destroy();
-      // featureLayer = null;
-      // view.graphics.removeAll();
-    } else {
-      addCommsLayer();
-      addDataComm.icon = "minus-circle";
-    }
-  });
-
-  let commsLayer = null;
-
-  function addCommsLayer() {
-    // Carbon storage of trees in Warren Wilson College.
-    commsLayer = new FeatureLayer({
-      url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Communications_Rooms/MapServer/0",
-    });
-
-    webmap.add(commsLayer);
+  function errorHandler(error) {
+    document.getElementById("upload-status").innerHTML =
+      "<p style='color:red;max-width: 500px;'>" + error.message + "</p>";
   }
 
-  addDataFan.addEventListener("click", function () {
-    console.log("add data button clicked");
-    if (fansLayer) {
-      // map.removeAll();
-      webmap.remove(fansLayer);
-      fansLayer = null;
-      view.graphics.removeAll();
-      addDataFan.icon = "add-layer";
-      // featureLayer.destroy();
-      // featureLayer = null;
-      // view.graphics.removeAll();
-    } else {
-      addFansLayer();
-      addDataFan.icon = "minus-circle";
-    }
-  });
+  function addShapefileToMap(featureCollection) {
+    // add the shapefile to the map and zoom to the feature collection extent
+    // if you want to persist the feature collection when you reload browser, you could store the
+    // collection in local storage by serializing the layer using featureLayer.toJson()
+    // see the 'Feature Collection in Local Storage' sample for an example of how to work with local storage
+    let sourceGraphics = [];
 
-  let fansLayer = null;
-
-  function addFansLayer() {
-    // Carbon storage of trees in Warren Wilson College.
-    fansLayer = new FeatureLayer({
-      url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Fan_Plants/MapServer/0",
+    const layers = featureCollection.layers.map((layer) => {
+      const graphics = layer.featureSet.features.map((feature) => {
+        return Graphic.fromJSON(feature);
+      });
+      sourceGraphics = sourceGraphics.concat(graphics);
+      const featureLayer = new FeatureLayer({
+        objectIdField: "FID",
+        source: graphics,
+        fields: layer.layerDefinition.fields.map((field) => {
+          return Field.fromJSON(field);
+        }),
+      });
+      return featureLayer;
+      // associate the feature with the popup on click to enable highlight and zoom to
+    });
+    webmap.addMany(layers);
+    view.goTo(sourceGraphics).catch((error) => {
+      if (error.name != "AbortError") {
+        console.error(error);
+      }
     });
 
-    webmap.add(fansLayer);
+    document.getElementById("upload-status").innerHTML = "";
   }
 
-  addDataSpans.addEventListener("click", function () {
-    console.log("add data button clicked");
-    if (spansLayer) {
-      // map.removeAll();
-      webmap.remove(spansLayer);
-      spansLayer = null;
-      view.graphics.removeAll();
-      addDataSpans.icon = "add-layer";
-      // featureLayer.destroy();
-      // featureLayer = null;
-      // view.graphics.removeAll();
-    } else {
-      addSpansLayer();
-      addDataSpans.icon = "minus-circle";
-    }
-  });
+  const submitShp = document.getElementById("submitShp");
+  submitShp.addEventListener("click", generateFeatureCollection);
 
-  let spansLayer = null;
+  // let addDataPower = document.getElementById("powerSubstationsAction");
+  // let addDataComm = document.getElementById("commAction");
+  // let addDataFan = document.getElementById("fanAction");
+  // let addDataSpans = document.getElementById("spanAction");
 
-  function addSpansLayer() {
-    // Carbon storage of trees in Warren Wilson College.
-    spansLayer = new FeatureLayer({
-      url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Spans/MapServer/0",
-    });
+  // addDataPower.addEventListener("click", function () {
+  //   console.log("add data button clicked");
+  //   if (powerSubsLayer) {
+  //     // map.removeAll();
+  //     webmap.remove(powerSubsLayer);
+  //     powerSubsLayer = null;
+  //     view.graphics.removeAll();
+  //     addDataPower.icon = "add-layer";
+  //     // featureLayer.destroy();
+  //     // featureLayer = null;
+  //     // view.graphics.removeAll();
+  //   } else {
+  //     addFeatureLayer();
+  //     addDataPower.icon = "minus-circle";
+  //   }
+  // });
 
-    webmap.add(spansLayer);
-  }
+  // let powerSubsLayer = null;
+
+  // function addFeatureLayer() {
+  //   // Carbon storage of trees in Warren Wilson College.
+  //   powerSubsLayer = new FeatureLayer({
+  //     url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Power_Substations/MapServer/0",
+  //   });
+
+  //   webmap.add(powerSubsLayer);
+  // }
+
+  // addDataComm.addEventListener("click", function () {
+  //   console.log("add data button clicked");
+  //   if (commsLayer) {
+  //     // map.removeAll();
+  //     webmap.remove(commsLayer);
+  //     commsLayer = null;
+  //     view.graphics.removeAll();
+  //     addDataComm.icon = "add-layer";
+  //     // featureLayer.destroy();
+  //     // featureLayer = null;
+  //     // view.graphics.removeAll();
+  //   } else {
+  //     addCommsLayer();
+  //     addDataComm.icon = "minus-circle";
+  //   }
+  // });
+
+  // let commsLayer = null;
+
+  // function addCommsLayer() {
+  //   // Carbon storage of trees in Warren Wilson College.
+  //   commsLayer = new FeatureLayer({
+  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Communications_Rooms/MapServer/0",
+  //   });
+
+  //   webmap.add(commsLayer);
+  // }
+
+  // addDataFan.addEventListener("click", function () {
+  //   console.log("add data button clicked");
+  //   if (fansLayer) {
+  //     // map.removeAll();
+  //     webmap.remove(fansLayer);
+  //     fansLayer = null;
+  //     view.graphics.removeAll();
+  //     addDataFan.icon = "add-layer";
+  //     // featureLayer.destroy();
+  //     // featureLayer = null;
+  //     // view.graphics.removeAll();
+  //   } else {
+  //     addFansLayer();
+  //     addDataFan.icon = "minus-circle";
+  //   }
+  // });
+
+  // let fansLayer = null;
+
+  // function addFansLayer() {
+  //   // Carbon storage of trees in Warren Wilson College.
+  //   fansLayer = new FeatureLayer({
+  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Fan_Plants/MapServer/0",
+  //   });
+
+  //   webmap.add(fansLayer);
+  // }
+
+  // addDataSpans.addEventListener("click", function () {
+  //   console.log("add data button clicked");
+  //   if (spansLayer) {
+  //     // map.removeAll();
+  //     webmap.remove(spansLayer);
+  //     spansLayer = null;
+  //     view.graphics.removeAll();
+  //     addDataSpans.icon = "add-layer";
+  //     // featureLayer.destroy();
+  //     // featureLayer = null;
+  //     // view.graphics.removeAll();
+  //   } else {
+  //     addSpansLayer();
+  //     addDataSpans.icon = "minus-circle";
+  //   }
+  // });
+
+  // let spansLayer = null;
+
+  // function addSpansLayer() {
+  //   // Carbon storage of trees in Warren Wilson College.
+  //   spansLayer = new FeatureLayer({
+  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Spans/MapServer/0",
+  //   });
+
+  //   webmap.add(spansLayer);
+  // }
 
   // Add the ImageryLayer, but it already exists in the webmap
   // Want solution to pull from webmap, not adding it again
@@ -1069,25 +1235,64 @@ require([
     container: "print-container",
   });
 
-  // Create a new div element for the Search widget container
+  // Create a new div element for the Search widget container and its configuration
   const searchWidgetContainer = document.createElement("div");
   searchWidgetContainer.id = "search-widget-container";
 
-  // Get the header-title and h2 element
   const headerTitle = document.getElementById("header-title");
   const h2Element = headerTitle.querySelector("h2");
 
   const searchWidget = new Search({
     view: view,
+    locationEnabled: false,
+    searchAllEnabled: false,
+    includeDefaultSources: false,
   });
 
+  // Wait for the view to finish loading, then add the search bar
   view.when().then(function () {
     headerTitle.insertBefore(searchWidgetContainer, h2Element.nextSibling);
     searchWidget.container = searchWidgetContainer;
     searchWidget.container.style = "border-radius: 25px;";
-    // Move the Search widget to the searchWidgetContainer
-    // searchWidget.container = searchWidgetContainer;
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+      const searchContainer = searchWidgetContainer.getElementsByClassName(
+        "esri-search__container"
+      );
+      const searchInput = searchContainer[0].querySelector(
+        ".esri-search__input"
+      );
+    });
+    const img = document.createElement("img");
+    // coming from json file
+    img.src = "MTA-NYCT.jpg";
+    img.alt = "QDS Logo";
+    img.width = "40";
+    img.height = "40";
+
+    const h2 = headerTitle.querySelector("h2");
+    headerTitle.insertBefore(img, h2);
   });
+
+  // Create a new div element for the Search widget container
+  // const searchWidgetContainer = document.createElement("div");
+  // searchWidgetContainer.id = "search-widget-container";
+
+  // // Get the header-title and h2 element
+  // const headerTitle = document.getElementById("header-title");
+  // const h2Element = headerTitle.querySelector("h2");
+
+  // const searchWidget = new Search({
+  //   view: view,
+  // });
+
+  // view.when().then(function () {
+  //   headerTitle.insertBefore(searchWidgetContainer, h2Element.nextSibling);
+  //   searchWidget.container = searchWidgetContainer;
+  //   searchWidget.container.style = "border-radius: 25px;";
+  //   // Move the Search widget to the searchWidgetContainer
+  //   // searchWidget.container = searchWidgetContainer;
+  // });
   const locateBtn = new Locate({
     view: view,
   });
@@ -1111,9 +1316,9 @@ require([
 
   view.ui.add(ccWidget, "bottom-right");
 
-  view.ui.add(searchWidget, {
-    position: "top-right",
-  });
+  // view.ui.add(searchWidget, {
+  //   position: "top-right",
+  // });
 
   view.ui.add(homebutton, {
     position: "top-left",

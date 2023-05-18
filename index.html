@@ -29,9 +29,12 @@
     <calcite-shell content-behind>
       
       <div slot="header">
-        <h2 id="header-title">
+        <div id="header-title">
+          <h2>
+            
+          </h2>
           <!-- Dynamically populated -->
-        </h2>
+        </div>
        
       </div>
      
@@ -165,11 +168,11 @@
                   <calcite-tab-title>URL</calcite-tab-title>
                   <calcite-tab-title>File</calcite-tab-title>
               </calcite-tab-nav>
-              <calcite-tab selected>
+              <calcite-tab id="addLayers" selected>
                  
                       <div id="searchLayers" slot="message">Recommended for coastal use</div>
-                      <calcite-list filter-enabled filter-placeholder="Search layers">
-                        <calcite-list-item label="Power Substations" description="Designated routes for hikers to use." value="hiking-trails">
+                      <calcite-list width="full" id="featureServiceList" filter-enabled filter-placeholder="Search layers">
+                        <!-- <calcite-list-item label="Power Substations" description="Designated routes for hikers to use." value="hiking-trails">
                             <calcite-action slot="actions-end" icon="add-layer" text="Power Substations" id="powerSubstationsAction"></calcite-action>
                         </calcite-list-item>
                         <calcite-list-item label="Communications Rooms" description="Vertical drops from a river." value="waterfalls">
@@ -183,7 +186,7 @@
                         </calcite-list-item>
                         <calcite-list-item label="Elevators" description="Where the river meets the sea." value="estuaries">
                           <calcite-action slot="actions-end" icon="add-layer" text="Elevators"></calcite-action>
-                      </calcite-list-item>
+                      </calcite-list-item> -->
                     </calcite-list>
                  
                 
@@ -191,16 +194,34 @@
               <calcite-tab id="urlInputPanel">
                 <calcite-label id="assetloclabel">URL:</calcite-label>
                 <calcite-input-text id="urlInput" placeholder="Enter your URL" ></calcite-input-text>
-                <calcite-button id="urlButton" >Add</calcite-button>
-                <p><strong>Url Examples:</strong> <br> <br>
+                <calcite-button id="urlButton">Add</calcite-button>
+                <p id="urlText"><strong>Url Examples:</strong> <br> <br>
                   https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Deep_Wells/MapServer/0
                 </p>
               </calcite-tab>
               <calcite-tab>
-                  <label for="csvFileInput">Upload CSV:</label>
+                  <label for="csvFileInput"><strong>Upload CSV file:</strong></label>
                   <input type="file" id="csvFileInput" accept=".csv" />
                   <calcite-button id="submitCsv">Submit</calcite-button>
-     
+
+                  <div id="mainWindow">
+                    <div>
+                      <div style='padding-left:4px;'>
+                        <!-- <p>Download shapefile from <a href='https://bsvensson.github.io/various-tests/shp/drp_county_boundary.zip'>here.</a></p> -->
+                        <form enctype="multipart/form-data" method="post" id="uploadForm">
+                          <div class="field">
+                            <label class="file-upload">
+                              <span><strong>Upload Zipped .shp file:</strong></span>
+                              <input type="file" name="file" id="inFile" />
+                              <calcite-button id="submitShp">Submit</calcite-button>
+                            </label>
+                          </div>
+                        </form>
+                        <span class="file-upload-status" style="opacity:1;" id="upload-status"></span>
+                        <div id="fileInfo"> </div>
+                      </div>
+                    </div>
+                  </div>
               </calcite-tab>
           </calcite-tabs>
         </div>
@@ -221,7 +242,7 @@
             <calcite-label id="assetloclabel"
               >Select SIR or Track</calcite-label
             >
-            <calcite-button scale="s" id="removeGraphics" icon-end="reset" appearance="transparent">Reset</calcite-button>
+            <calcite-button scale="s" id="removeGraphics" icon-end="reset" appearance="transparent"></calcite-button>
           </div>
             <hr
               style="
@@ -345,7 +366,7 @@
             <calcite-accordion-item description="Link to share with others" heading="URL" icon-start="link">
                 <calcite-notice open>
                     <div id="shareURL" slot="message">
-                      <a href="">https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=-8239587.7856%2C4973956.1963%2C-8224682.5651%2C4982526.6981%2C102100#</a>
+                      <a href="https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=-8239587.7856%2C4973956.1963%2C-8224682.5651%2C4982526.6981%2C102100#"></a>
                     </div>
                 </calcite-notice>
             </calcite-accordion-item>
@@ -435,7 +456,7 @@
                     > -->
               </calcite-dropdown-group>
             </calcite-dropdown>
-            <calcite-button id="removeFilter" appearance="solid">Reset</calcite-button>
+            <calcite-button scale="s" id="removeFilter" appearance="solid">Reset</calcite-button>
             <div id="filterInputs"></div>
           </div>
         </calcite-panel>

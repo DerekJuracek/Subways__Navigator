@@ -18,20 +18,57 @@ calcite-loader {
 
 #header-title {
   font-family: Arial, sans-serif;
-  font-size: 24px;
-  font-weight: bold;
-  color: #007ac2;
+  font-size: 25px;
   margin: 0;
-  padding: 0.75rem; /* Adjust padding to match header padding */
+  padding: 0.75rem;
+  padding-left: 100px;
+  margin-right: 0;
   position: relative;
-  z-index: 1001;
-  /* height: 50px; */
+  height: 25px;
+  display: flex;
+  align-items: center;
+  color: white;
+  background-color: #ee352e;
+  /* #0039a6 color for blue subways */
+  z-index: 1000;
+  white-space: nowrap;
+  min-width: 500px;
+}
+
+#header-title img {
+  position: absolute;
+  left: 35px;
 }
 
 #search-widget-container {
-  margin-left: 40%;
-  margin-right: 0%; /* Adjust this value to increase or decrease the space between the h2 and the Search widget */
+  margin-left: 57%;
+  margin-right: 2%;
+  border-radius: 5px;
 }
+
+@media (max-width: 1000px) {
+  .esri-search__input {
+    width: 125px;
+    margin-right: 10%;
+  }
+}
+
+.esri-search__input {
+  width: 250px;
+}
+/* @media (max-width: 1300px) {
+  #search-widget-container {
+    margin-left: 20%;
+    margin-right: 10%;
+  }
+}
+
+@media (max-width: 1250px) {
+  #search-widget-container {
+    margin-left: 25%;
+    margin-right: 10%;
+  }
+} */
 
 calcite-shell-header {
   background-color: white;
@@ -55,6 +92,14 @@ calcite-shell-header {
 
 calcite-rating {
   margin-top: 0.25rem;
+}
+
+#addLayers {
+  width: 275px;
+}
+
+calcite-list-item {
+  width: 270px;
 }
 
 .submit-text {
@@ -90,10 +135,10 @@ calcite-tab-panel {
   height: calc(100% - 48px); /* 48px is the height of the tab-title */
   overflow: auto;
 }
-#header-title {
+/* #header-title {
   color: white;
-  background-color: #0079c1;
-}
+  background-color: #0039a6;
+} */
 
 #feature-table-container {
   position: absolute;
@@ -139,7 +184,7 @@ calcite-notice {
 
 #sir,
 #track {
-  width: 220px;
+  width: 230px;
   /* padding-top: 5px; */
   padding-left: 5px;
   padding-bottom: 0;
@@ -168,6 +213,19 @@ calcite-notice {
   padding-left: 2%;
   padding-right: 2%;
   align-items: center;
+}
+
+#input1,
+#input2,
+#input3,
+#input4,
+#input5 {
+  width: 235px;
+}
+
+#first,
+#second {
+  width: 235px;
 }
 
 #tabs {
@@ -259,21 +317,16 @@ calcite-notice {
   padding-left: 150px;
   width: 110px;
 }
-#csvFileInput {
-  /* Green */
-  border: none;
-  color: black;
-  padding-left: 10px;
-  padding-bottom: 10px;
+
+#submitCsv,
+#submitShp {
+  padding-left: 5px;
   padding-top: 10px;
-  /* text-align: center; */
-  /* text-decoration: none;
-  display: inline-block; */
-  font-size: 12px;
+  padding-bottom: 10px;
 }
 
-#submitCsv {
-  padding-left: 10px;
+#csvFileInput {
+  padding-left: 5px;
 }
 
 #removeGraphics {
@@ -323,5 +376,14 @@ calcite-notice {
 } */
 
 #removeFilter {
-  padding-top: 20px;
+  padding-top: 35px;
+}
+
+#urlInputPanel {
+  width: 275px;
+}
+
+#urlText {
+  font-size: 12px;
+  width: 275px;
 }
