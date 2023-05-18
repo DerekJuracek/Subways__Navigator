@@ -142,12 +142,17 @@ require([
     //mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Access_Intrusion/MapServer/info/thumbnail
 
     // Create an img element to hold the thumbnail
-    https: thumbnailImage = document.createElement("img");
+    thumbnailImage = document.createElement("img");
     thumbnailImage.src = thumbnailUrl;
-    thumbnailImage.style.width = "50px"; // Adjust as necessary
-    thumbnailImage.style.height = "50px"; // Adjust as necessary
+    thumbnailImage.width = "50"; // Adjust as necessary
+    thumbnailImage.height = "50"; // Adjust as necessary
     thumbnailImage.slot = "content-start"; // This will position it on the left
     listItem.appendChild(thumbnailImage);
+
+    // img.src = "MTA-NYCT.jpg";
+    // img.alt = "QDS Logo";
+    // img.width = "40";
+    // img.height = "40";
 
     // listItem.label = itemsName;
 
