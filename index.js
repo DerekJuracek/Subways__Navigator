@@ -128,12 +128,23 @@ require([
     });
 
   function createCalciteListItem(service) {
+    console.log(service.name);
     const listItem = document.createElement("calcite-list-item");
     // listItem.display.style.width = "250px";
     itemsName = service.name.split("/")[1];
     itemsLabel = itemsName.replaceAll("_", " ");
     listItem.style.fontWeight = "bold";
     listItem.label = itemsLabel;
+
+    const thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
+
+    // Create an img element to hold the thumbnail
+    const thumbnailImage = document.createElement("img");
+    thumbnailImage.src = thumbnailUrl;
+    thumbnailImage.style.width = "50px"; // Adjust as necessary
+    thumbnailImage.style.height = "50px"; // Adjust as necessary
+    thumbnailImage.slot = "content-start"; // This will position it on the left
+    listItem.appendChild(thumbnailImage);
 
     // listItem.label = itemsName;
 
@@ -251,30 +262,6 @@ require([
       queryAndZoom(layerName, fieldName, fieldValue);
     }
   });
-
-  // const shareAction = document.getElementById("shareAction");
-
-  // view.on("mouse-wheel", function () {
-  //   shareAction.addEventListener("click", function () {
-  //     let shareURL = document.getElementById("shareURL");
-  //     let anchor = shareURL.querySelector("a");
-  //     // Access the href attribute of the <a> element
-  //     let hrefValue = anchor.getAttribute("href");
-  //     console.log("Current href value:", hrefValue);
-  //     let currentState = view.state.extent;
-  //     let min = [currentState.xmin, currentState.ymin];
-  //     let max = [currentState.xmax, currentState.ymax];
-  //     // console.log(shareURL);
-  //     console.log(currentState);
-  //     console.log(min);
-  //     console.log(max);
-
-  //     let newHrefValue = `https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=${min}%2C${max}%2C102100`;
-  //     anchor.setAttribute("href", newHrefValue);
-  //     console.log();
-  //     // shareURL.textContent = newHrefValue;
-  //   });
-  // });
 
   // console.log(view);
   const shareAction = document.getElementById("shareAction");
@@ -475,12 +462,6 @@ require([
   }
   // add data code
   const fileForm = document.getElementById("mainWindow");
-
-  // const expand = new Expand({
-  //   expandIconClass: "esri-icon-upload",
-  //   view: view,
-  //   content: fileForm,
-  // });
 
   // code to upload zipped shapefile
 
@@ -695,7 +676,7 @@ require([
 
   webmap.add(Imagerylayer1);
 
-  const token = `bla9IvguSQ-dZURCpXKRjlI3NcXw3nSKbDSQbJ1ZzPoTIXNnWxePZG-FyVTSOn8al2HKQ3cjBWT2XGkrHOwvaqnIf5iM9jVpokTK-3VUlZpPbPMOxbYBJIGyMb71vM6h9dGMNIvsjJmH_zx8FgiHYobXyEG9CgPtSt5Grq0kEYi8rTVyksdDw3V3FUTiOb8p8ms6DCoFUqKbA3GUzPoWIudOI5WBAKwiQxxEWw67U94.`;
+  const token = `46FMMW5pio0AN7U8zeJQ9IZpSSWkq7Qm9Uf9PEj80r5YJ--I3hH2VgqIlZUBvU_gkfuqsXnv7YcX3x63IW6ittGNmIxsezybfRVKBbb3JCJf2J7za5OPS4Qd5ycTw3JWbMTH12DY8I2q1CZBY2BzZ2LmNBESZQ7nTXAkMlPK7X3G61lW1ePZfwxewHsXtgzZE096zdVoKnu90fQ2v9cxcJTJLFTl0kc6xDq3zmAQTEY.`;
 
   async function populateDropdownItems(division) {
     let divison = division.toUpperCase();
@@ -1274,31 +1255,10 @@ require([
     headerTitle.insertBefore(img, h2);
   });
 
-  // Create a new div element for the Search widget container
-  // const searchWidgetContainer = document.createElement("div");
-  // searchWidgetContainer.id = "search-widget-container";
-
-  // // Get the header-title and h2 element
-  // const headerTitle = document.getElementById("header-title");
-  // const h2Element = headerTitle.querySelector("h2");
-
-  // const searchWidget = new Search({
-  //   view: view,
-  // });
-
-  // view.when().then(function () {
-  //   headerTitle.insertBefore(searchWidgetContainer, h2Element.nextSibling);
-  //   searchWidget.container = searchWidgetContainer;
-  //   searchWidget.container.style = "border-radius: 25px;";
-  //   // Move the Search widget to the searchWidgetContainer
-  //   // searchWidget.container = searchWidgetContainer;
-  // });
   const locateBtn = new Locate({
     view: view,
   });
 
-  // if you want to add back to the html container
-  // comment the line below back out and delete or commment out the homebutton view
   const homebutton = new Home({
     view: view,
     // container: "home-container",
@@ -1307,7 +1267,7 @@ require([
   const scaleBar = new ScaleBar({
     view: view,
     unit: "dual",
-    style: "ruler", // The scale bar displays both metric and non-metric units.
+    style: "ruler",
   });
 
   const ccWidget = new CoordinateConversion({
@@ -1315,10 +1275,6 @@ require([
   });
 
   view.ui.add(ccWidget, "bottom-right");
-
-  // view.ui.add(searchWidget, {
-  //   position: "top-right",
-  // });
 
   view.ui.add(homebutton, {
     position: "top-left",
@@ -1427,16 +1383,10 @@ require([
 
             let searchFields, displayField;
 
-            if (
-              featureLayer.title ===
-              "Subways Navigator V2 - Single Line Drawings"
-            ) {
+            if (featureLayer.title === "Single Line Drawings") {
               searchFields = ["DRAWINGNUMBER"];
               displayField = "DRAWINGNUMBER";
-            } else if (
-              featureLayer.title ===
-              "Subways Navigator V2 - Double Line Drawings"
-            ) {
+            } else if (featureLayer.title === "Double Line Drawings") {
               searchFields = ["DRAWINGNUMBER"];
               displayField = "DRAWINGNUMBER";
             } else {

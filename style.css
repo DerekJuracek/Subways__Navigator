@@ -28,7 +28,7 @@ calcite-loader {
   display: flex;
   align-items: center;
   color: white;
-  background-color: #ee352e;
+  background-color: #0039a6;
   /* #0039a6 color for blue subways */
   z-index: 1000;
   white-space: nowrap;
@@ -387,3 +387,24 @@ calcite-notice {
   font-size: 12px;
   width: 275px;
 }
+
+#addTools {
+  height: 100%;
+}
+
+/* #print-container {
+  height: 200px;
+} */
+
+/* #add-data-buttons {
+  height: 400px;
+  padding-bottom: 10px;
+} */
+
+/* #basemaps-container {
+  height: 150px;
+}
+
+#bookmarks-container {
+  height: 50px;
+} */
