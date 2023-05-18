@@ -144,8 +144,8 @@ require([
     // Create an img element to hold the thumbnail
     https: thumbnailImage = document.createElement("img");
     thumbnailImage.src = thumbnailUrl;
-    thumbnailImage.style.width = "50"; // Adjust as necessary
-    thumbnailImage.style.height = "50"; // Adjust as necessary
+    thumbnailImage.style.width = "50px"; // Adjust as necessary
+    thumbnailImage.style.height = "50px"; // Adjust as necessary
     thumbnailImage.slot = "content-start"; // This will position it on the left
     listItem.appendChild(thumbnailImage);
 
