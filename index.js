@@ -132,18 +132,20 @@ require([
     const listItem = document.createElement("calcite-list-item");
     // listItem.display.style.width = "250px";
     itemsName = service.name.split("/")[1];
+    let thumbnail = `images/${itemsName}.png`;
+    console.log(thumbnail);
     itemsLabel = itemsName.replaceAll("_", " ");
     listItem.style.fontWeight = "bold";
     listItem.label = itemsLabel;
 
-    let thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
-    console.log(thumbnailUrl);
+    // let thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
+    // console.log(thumbnailUrl);
 
     //mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Access_Intrusion/MapServer/info/thumbnail
 
     // Create an img element to hold the thumbnail
     thumbnailImage = document.createElement("img");
-    thumbnailImage.src = thumbnailUrl;
+    thumbnailImage.src = thumbnail;
     thumbnailImage.width = "50"; // Adjust as necessary
     thumbnailImage.height = "50"; // Adjust as necessary
     thumbnailImage.slot = "content-start"; // This will position it on the left
