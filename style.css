@@ -408,3 +408,8 @@ calcite-notice {
 #bookmarks-container {
   height: 50px;
 } */
+
+#opacityDiv {
+  font-size: 10px;
+  font-weight: 500;
+}

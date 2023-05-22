@@ -18,6 +18,7 @@ require([
   "esri/widgets/Bookmarks",
   "esri/widgets/BasemapGallery",
   "esri/widgets/LayerList",
+  "esri/widgets/Slider",
   "esri/widgets/Legend",
   "esri/widgets/Print",
   "esri/widgets/Search",
@@ -47,6 +48,7 @@ require([
   Bookmarks,
   BasemapGallery,
   LayerList,
+  Slider,
   Legend,
   Print,
   Search,
@@ -146,8 +148,8 @@ require([
     // Create an img element to hold the thumbnail
     thumbnailImage = document.createElement("img");
     thumbnailImage.src = thumbnail;
-    thumbnailImage.width = "50"; // Adjust as necessary
-    thumbnailImage.height = "50"; // Adjust as necessary
+    thumbnailImage.width = "60"; // Adjust as necessary
+    thumbnailImage.height = "40"; // Adjust as necessary
     thumbnailImage.slot = "content-start"; // This will position it on the left
     listItem.appendChild(thumbnailImage);
 
@@ -400,10 +402,6 @@ require([
     }
 
     const featureButton = document.getElementById("collapseButton");
-
-    // tab.insertBefore(featureTableContainer);
-
-    // Add the container to the tab
 
     view.ui.add(featureButton, "bottom-right");
   });
@@ -1194,6 +1192,8 @@ require([
     container: "bookmarks-container",
   });
 
+  let clickedLayerId;
+
   const layerList = new LayerList({
     view,
     selectionEnabled: true,
@@ -1204,16 +1204,74 @@ require([
       item.actionsSections = [
         [
           {
-            title: "Custom action",
+            title: "Open Attribute Table",
             className: "esri-icon-handle-vertical", // You can use a Calcite icon here
             id: "custom-action",
             visible: true,
           },
         ],
       ];
+      createOpacitySlider(item);
     },
   });
 
+  async function createOpacitySlider(item) {
+    await item.layer.when();
+
+    if (item.children.length < 1) {
+      const layerId = item.layer.portalItem;
+      const layer = item.layer;
+      console.log(layer);
+      // console.log(item.layer);
+      console.log(layerId);
+      const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
+
+      // Create an "About" link
+      const aboutLink = document.createElement("a");
+      aboutLink.href = layerUrl;
+      aboutLink.textContent = "About this layer";
+      aboutLink.target = "_blank"; // open in a new tab
+
+      const opacityDiv = document.createElement("div");
+      opacityDiv.innerHTML = "<p>Layer Opacity (%)</p>";
+      opacityDiv.id = "opacityDiv";
+
+      // moreInfo.innerHTML = "<p>More Info</p>";
+      // moreInfo.innerHTML = `<a href="https://www.w3schools.com">More Info</a>`;
+
+      const opacitySlider = new Slider({
+        container: opacityDiv,
+        min: 0,
+        max: 1,
+        values: [0.75],
+        precision: 2,
+        visibleElements: {
+          labels: true,
+          rangeLabels: true,
+        },
+      });
+
+      item.panel = {
+        content: [opacityDiv, aboutLink],
+        className: "esri-icon-sliders-horizontal",
+        title: "Change layer settings",
+        label: "Change layer settings",
+      };
+
+      opacitySlider.on("thumb-drag", (event) => {
+        const { value } = event;
+        item.layer.opacity = value;
+      });
+    }
+  }
+
+  // view.when().then(() => {
+  //   defineActions;
+
+  // });
+
+  // view.on();
+  layerList.on("trigger-action", createOpacitySlider);
   layerList.on("trigger-action", customAction);
   // layerList.addEventListener("click", customAction);
 
@@ -1258,6 +1316,7 @@ require([
     // coming from json file
     img.src = "MTA-NYCT.jpg";
     img.alt = "QDS Logo";
+    // change to
     img.width = "40";
     img.height = "40";
 
