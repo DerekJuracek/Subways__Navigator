@@ -6,6 +6,7 @@ require([
   "esri/portal/Portal",
   "esri/portal/PortalGroup",
   "esri/widgets/FeatureTable",
+  "esri/core/reactiveUtils",
   "esri/layers/CSVLayer",
   "esri/request",
   "esri/layers/support/Field",
@@ -16,7 +17,7 @@ require([
   "esri/layers/ImageryLayer",
   "esri/Graphic",
   "esri/widgets/Bookmarks",
-  "esri/widgets/BasemapGallery",
+  "esri/widgets/BasemapLayerList",
   "esri/widgets/LayerList",
   "esri/widgets/Slider",
   "esri/widgets/Legend",
@@ -36,6 +37,7 @@ require([
   Portal,
   PortalGroup,
   FeatureTable,
+  reactiveUtils,
   CSVLayer,
   request,
   Field,
@@ -46,7 +48,7 @@ require([
   ImageryLayer,
   Graphic,
   Bookmarks,
-  BasemapGallery,
+  BasemapLayerList,
   LayerList,
   Slider,
   Legend,
@@ -64,7 +66,9 @@ require([
   esriConfig.portalUrl = "https://mtagisdev.lirr.org/dosportaldev/";
   const webmapId =
     new URLSearchParams(window.location.search).get("webmap") ??
-    "5dbd53039d094cde802afcae6a3e4c07";
+    "a5b26e6f79574142b287d3aeaeee5d50";
+
+  const token = `tbzuaQlXUrCC34Mg1nd1dRcSLjbDTzsk9eaEdK0JHZNTU6yzH1xst8A-YLJtmsW6QRpT7z8L3zz6iUKhlQT8vsxD6ZYzRo2lLPLaNxXLC_JAjsFna6dSEMypYC2Y_VrdaDFyRnwd3d6LJSiR1aaIRqVnAAYPuYEJWmRBqJLMWq_aZV45OATfkrT6ty6PfRZ-KyrxRzTB-2vOkUU1b0YWPjMSLSDJ26t2xPXHiXaHkjs.`;
 
   const graphicsLayer = new GraphicsLayer();
 
@@ -86,7 +90,7 @@ require([
     portalItem: {
       id: webmapId,
     },
-    layers: [graphicsLayer],
+    // layers: [graphicsLayer],
   });
 
   const view = new MapView({
@@ -104,8 +108,7 @@ require([
     },
   });
 
-  const folderUrl =
-    "https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=7ZLS1Xy7UatiHSSx_8OyRuZ7Rrqcxc9Pe6Cdye4NK3VTkeHOwV57w4v1pjUtWMvhhZhQb86LBq9PEEMQnB-W7eeOKeY6Pw147rGPvDqLD4yyrG-PjZbeRLQqh5pJd73Gf90Iz1LWP-J2HVVqrt4i4uWGcP_YRMOzVtUmDEy8u4aSXlM8OGOlYQJHTr4VMno-Gf9LJGPi_DEr04DbxzOfJLdwqeYH3LbuDkDtYaKnRLg.";
+  const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
 
   fetch(folderUrl)
     .then((response) => {
@@ -153,13 +156,6 @@ require([
     thumbnailImage.slot = "content-start"; // This will position it on the left
     listItem.appendChild(thumbnailImage);
 
-    // img.src = "MTA-NYCT.jpg";
-    // img.alt = "QDS Logo";
-    // img.width = "40";
-    // img.height = "40";
-
-    // listItem.label = itemsName;
-
     const action = document.createElement("calcite-action");
     action.slot = "actions-end";
     action.icon = "add-layer";
@@ -190,6 +186,8 @@ require([
     // Create a new FeatureLayer using the service URL
     service.layer = new FeatureLayer({
       url: `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/${itemsName}/MapServer/`,
+      defaultPopupTemplateEnabled: true,
+      popupEnabled: true,
     });
     console.log(service.layer);
 
@@ -346,8 +344,58 @@ require([
       });
   };
 
+  const exportCSVButton = document.getElementById("exportBtn");
+  view.ui.add(exportCSVButton, "top-right");
+
   let featureTable;
   let layer;
+
+  // Event listener for "Export to CSV" button
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    let featuresToExport;
+
+    // Check if there are selected items
+    if (featureTable.selectedItems.length > 0) {
+      // Export only selected items
+      featuresToExport = featureTable.selectedItems;
+
+      // Continue with exporting
+      exportToCSV(featuresToExport);
+    } else {
+      // Export all features
+      layer.queryFeatures().then(function (results) {
+        featuresToExport = results.features;
+
+        // Continue with exporting
+        exportToCSV(featuresToExport);
+      });
+    }
+  });
+
+  // Function to export to CSV
+  function exportToCSV(featuresToExport) {
+    // Convert the features to CSV
+    let csvData = convertToCSV(featuresToExport);
+
+    // Create a Blob from the CSV data
+    let blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+
+    // Create a URL for the Blob
+    let url = URL.createObjectURL(blob);
+
+    // Create a link element with the Blob URL as the href
+    let link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "myData.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+
+    // Click the link to start the download
+    link.click();
+
+    // Remove the link element from the DOM
+    document.body.removeChild(link);
+  }
 
   async function customAction(event) {
     // Handle custom action click event
@@ -363,16 +411,76 @@ require([
       container.appendChild(tableContainer);
       // Create a new FeatureTable for the layer
       featureTable = new FeatureTable({
+        view: view,
         layer: layer,
         container: tableContainer,
-        visible: true,
-        // editingEnabled: true,
-        highlightEnabled: true,
+
+        visibleElements: {
+          menuItems: {
+            autoRefresh: true,
+            showSelection: true,
+            clearSelection: true,
+            refreshData: true,
+            toggleColumns: true,
+            selectedRecordsShowAllToggle: true,
+            selectedRecordsShowSelectedToggle: true,
+            zoomToSelection: true,
+          },
+        },
+      });
+
+      console.log(featureTable);
+
+      // reactiveUtils.when(
+      //   () => view.stationary === true,
+      //   () => {
+      //     if (view.extent) {
+      //       featureTable.filterGeometry = view.extent;
+      //     }
+      //   },
+      //   {
+      //     initial: true,
+      //   }
+      // );
+
+      view.on("immediate-click", (event) => {
+        view.hitTest(event).then((response) => {
+          candidate = response.results.find((result) => {
+            return (
+              result.graphic &&
+              result.graphic.layer &&
+              result.graphic.layer === layer
+            );
+          });
+
+          if (candidate) {
+            const objectId = candidate.graphic.getObjectId();
+
+            if (featureTable.highlightIds.includes(objectId)) {
+              featureTable.highlightIds.remove(objectId);
+            } else {
+              featureTable.highlightIds.add(objectId);
+            }
+          }
+        });
+      });
+
+      featureTable.watch("highlightIds.length", (ids) => {
+        highlightIdsCount = ids;
+
+        featureTable.viewModel.activeFilters.forEach((filter) => {
+          if (filter.type === "selection") {
+            selectionIdCount = filter.objectIds.length;
+
+            if (selectionIdCount != highlightIdsCount) {
+              featureTable.filterBySelection();
+            }
+          }
+        });
       });
 
       attributeBar.style.height = "250px";
       // view.padding = { bottom: 196 };
-      console.log(featureTable.highlightEnabled);
     } else {
       featureTable.destroy();
       featureTable = null;
@@ -678,13 +786,54 @@ require([
 
   // Add the ImageryLayer, but it already exists in the webmap
   // Want solution to pull from webmap, not adding it again
-  let Imagerylayer1 = new ImageryLayer({
-    url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer",
+  const filterAction = document.getElementById("filter");
+
+  let Imagerylayer1;
+
+  webmap.when(function () {
+    // Only add the event listener if "Station Plans" layer is not visible
+    filterAction.addEventListener("click", () => {
+      let stationPlansLayerVisible = view.map.allLayers.some((layer) => {
+        return layer.title === "Station Plans" && layer.visible;
+      });
+
+      if (!stationPlansLayerVisible) {
+        let layerExists = view.map.allLayers.some((layer) => {
+          return (
+            layer.url ===
+            "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer"
+          );
+        });
+
+        if (!layerExists) {
+          Imagerylayer1 = new ImageryLayer({
+            url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer",
+          });
+
+          webmap.add(Imagerylayer1);
+        }
+      }
+    });
   });
 
-  webmap.add(Imagerylayer1);
+  // webmap.when(function () {
+  //   reactiveUtils.watch(() => [
+  //     view.map.allLayers.map((layer) => {
+  //       if (layer.title === "Station Plans" && layer.visible === false) {
+  //         filterAction.addEventListener("click", () => {
+  //           let Imagerylayer1 = new ImageryLayer({
+  //             url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer",
+  //           });
+  //           webmap.add(Imagerylayer1);
+  //         })
 
-  const token = `46FMMW5pio0AN7U8zeJQ9IZpSSWkq7Qm9Uf9PEj80r5YJ--I3hH2VgqIlZUBvU_gkfuqsXnv7YcX3x63IW6ittGNmIxsezybfRVKBbb3JCJf2J7za5OPS4Qd5ycTw3JWbMTH12DY8I2q1CZBY2BzZ2LmNBESZQ7nTXAkMlPK7X3G61lW1ePZfwxewHsXtgzZE096zdVoKnu90fQ2v9cxcJTJLFTl0kc6xDq3zmAQTEY.`;
+  //         // console.log(layer); // log the layer here
+  //         // return layer.visible;
+  //       } else {
+  //        return
+  //       }
+  //   ]);
+  // });
 
   async function populateDropdownItems(division) {
     let divison = division.toUpperCase();
@@ -1183,10 +1332,72 @@ require([
     infoContainer.innerHTML = "";
   });
 
-  const basemaps = new BasemapGallery({
+  const basemaps = new BasemapLayerList({
     view,
     container: "basemaps-container",
+    basemapTitle: "",
+    baseHeading: "hey you",
+    // messages.baseHeading: "",
   });
+  console.log(basemaps);
+
+  // basemaps.baseHeading = "";
+
+  // basemapsItems.label = "none";
+
+  basemaps.visibleElements = {
+    baseHeading: false,
+    statusIndicators: true,
+    baseLayers: true,
+    baseLayersTitle: false,
+    referenceLayers: false,
+    referenceLayersTitle: false,
+    errors: true,
+  };
+
+  console.log(basemaps.visibleElements);
+
+  view.when().then(() => {
+    // Get base layer titles dynamically
+    const baseLayerTitles = view.map.basemap.baseLayers.map(
+      (layer) => layer.title
+    );
+
+    // Watch for changes in the visibility of base layers
+    reactiveUtils.watch(
+      () => [view.map.basemap.baseLayers.map((layer) => layer.visible)],
+      () => {
+        manageBasemapVisibility(view.map.basemap.baseLayers, baseLayerTitles);
+      }
+    );
+  });
+
+  function manageBasemapVisibility(baseLayers, orthoLayerTitles) {
+    // Filter out the layers that we're interested in
+    let basemapLayers = baseLayers.filter((layer) =>
+      orthoLayerTitles.includes(layer.title)
+    );
+
+    // Find the newly visible layer
+    let newlyVisibleLayer = basemapLayers.find(
+      (layer) => layer.visible && !layer.wasVisible
+    );
+
+    // If a newly visible layer is found, turn off all other layers
+    if (newlyVisibleLayer) {
+      basemapLayers.forEach((layer) => {
+        if (layer !== newlyVisibleLayer) {
+          layer.visible = false;
+        }
+      });
+    }
+
+    // Update wasVisible property
+    basemapLayers.forEach((layer) => {
+      layer.wasVisible = layer.visible;
+    });
+  }
+
   const bookmarks = new Bookmarks({
     view,
     container: "bookmarks-container",
@@ -1200,6 +1411,7 @@ require([
     container: "layers-container",
     listItemCreatedFunction: function (event) {
       const item = event.item;
+      console.log(item);
 
       item.actionsSections = [
         [
@@ -1215,29 +1427,58 @@ require([
     },
   });
 
+  // async function moreInformation(item) {
+  //   await item.layers.when();
+  //   if (item.children.length < 1) {
+  //     const layer = item.layer.url;
+
+  //     const restURL = `${layer}`;
+  //     // const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
+
+  //     // Create an "About" link
+  //     const aboutLink = document.createElement("div");
+  //     window.open(restURL);
+  //     // aboutLink.href = restURL;
+  //     aboutLink.textContent = "About this layer";
+  //     // aboutLink.target = "_blank";
+  //     // aboutLink.title = "Layer Information";
+  //     aboutLink.className = "esri-icon-description";
+  //     aboutLink.id = "information";
+  //   }
+  // }
+
   async function createOpacitySlider(item) {
     await item.layer.when();
 
     if (item.children.length < 1) {
-      const layerId = item.layer.portalItem;
-      const layer = item.layer;
-      console.log(layer);
-      // console.log(item.layer);
-      console.log(layerId);
-      const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
+      const layer = item.layer.url;
+      const restURL = `${layer}`;
+
+      // title: "Layer information",
+      //     // className: "esri-icon-description",
+      //     // id: "information",
 
       // Create an "About" link
-      const aboutLink = document.createElement("a");
-      aboutLink.href = layerUrl;
-      aboutLink.textContent = "About this layer";
-      aboutLink.target = "_blank"; // open in a new tab
+      const aboutLink = document.createElement("div");
+      // aboutLink.innerHTML = "<p>More Information</p>";
+      // aboutLink.className = "esri-icon-description";
+      aboutLink.id = "information";
+      aboutLink.title = "More Information";
+
+      // Create an icon for the "About" link
+      const aboutIcon = document.createElement("div");
+      aboutIcon.id = "infoIcon";
+      aboutIcon.className = "esri-icon-description custom-action-icon";
+      aboutLink.appendChild(aboutIcon);
+
+      // Handle the click event on the "About" link
+      aboutIcon.onclick = function () {
+        window.open(restURL);
+      };
 
       const opacityDiv = document.createElement("div");
-      opacityDiv.innerHTML = "<p>Layer Opacity (%)</p>";
+      opacityDiv.innerHTML = "<p>Opacity (%)</p>";
       opacityDiv.id = "opacityDiv";
-
-      // moreInfo.innerHTML = "<p>More Info</p>";
-      // moreInfo.innerHTML = `<a href="https://www.w3schools.com">More Info</a>`;
 
       const opacitySlider = new Slider({
         container: opacityDiv,
@@ -1265,12 +1506,70 @@ require([
     }
   }
 
+  // async function createOpacitySlider(item) {
+  //   await item.layer.when();
+
+  //   if (item.children.length < 1) {
+  //     const layer = item.layer.url;
+  //     const restURL = `${layer}`;
+  //     // const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
+
+  //     // Create an "About" link
+  //     const aboutLink = document.createElement("div");
+  //     window.open(restURL);
+  //     // aboutLink.href = restURL;
+  //     aboutLink.textContent = "About this layer";
+  //     // aboutLink.target = "_blank";
+  //     // aboutLink.title = "Layer Information";
+  //     aboutLink.className = "esri-icon-description";
+  //     aboutLink.id = "information";
+  //     // const layerId = item.layer;
+
+  //     // title: "Layer information",
+  //     // className: "esri-icon-description",
+  //     // id: "information",// open in a new tab
+
+  //     const opacityDiv = document.createElement("div");
+  //     opacityDiv.innerHTML = "<p>Layer Opacity (%)</p>";
+  //     opacityDiv.id = "opacityDiv";
+
+  //     // moreInfo.innerHTML = "<p>More Info</p>";
+  //     // moreInfo.innerHTML = `<a href="https://www.w3schools.com">More Info</a>`;
+
+  //     const opacitySlider = new Slider({
+  //       container: opacityDiv,
+  //       min: 0,
+  //       max: 1,
+  //       values: [0.75],
+  //       precision: 2,
+  //       visibleElements: {
+  //         labels: true,
+  //         rangeLabels: true,
+  //       },
+  //     });
+
+  //     item.panel = {
+  //       content: [opacityDiv, aboutLink],
+  //       className: "esri-icon-sliders-horizontal",
+  //       title: "Change layer settings",
+  //       label: "Change layer settings",
+  //     };
+
+  //     opacitySlider.on("thumb-drag", (event) => {
+  //       const { value } = event;
+  //       item.layer.opacity = value;
+  //     });
+  //   }
+  // }
+
   // view.when().then(() => {
   //   defineActions;
 
   // });
 
   // view.on();
+  // window.open(visibleLayer.url);
+
   layerList.on("trigger-action", createOpacitySlider);
   layerList.on("trigger-action", customAction);
   // layerList.addEventListener("click", customAction);
@@ -1295,7 +1594,11 @@ require([
     view: view,
     locationEnabled: false,
     searchAllEnabled: false,
-    includeDefaultSources: false,
+    includeDefaultSources: true,
+    suggestionsEnabled: true,
+    exactMatch: false,
+    maxSuggestions: 6,
+    maxResults: 6,
   });
 
   // Wait for the view to finish loading, then add the search bar
@@ -1341,6 +1644,7 @@ require([
 
   const ccWidget = new CoordinateConversion({
     view: view,
+    headingLevel: 5,
   });
 
   view.ui.add(ccWidget, "bottom-right");
@@ -1387,6 +1691,7 @@ require([
       case "distance":
         activeWidget1 = new DistanceMeasurement2D({
           view: view,
+          unit: "feet",
         });
 
         // skip the initial 'new measurement' button
@@ -1398,6 +1703,7 @@ require([
       case "area":
         activeWidget1 = new AreaMeasurement2D({
           view: view,
+          unit: "square-us-feet",
         });
 
         // skip the initial 'new measurement' button
@@ -1427,8 +1733,32 @@ require([
       selectedButton.classList.add("active");
     }
   }
-  const allLayers = view.map.allLayers;
-  console.log(allLayers);
+
+  // Derek Array Practice
+
+  // view.when(function () {
+  //   webmap.load().then(function () {
+  //     const allLayers = webmap.layers.map((layer) => layer.load());
+  //     console.log(allLayers);
+
+  //     Promise.all(allLayers).then(() => {
+  //       const layerNames = webmap.layers
+  //         .filter(function (layer) {
+  //           return (
+  //             layer.title === "Single Line Drawings" ||
+  //             layer.title === "Double Line Drawings"
+  //           );
+  //         })
+  //         .map(function (featureLay) {
+  //           return featureLay.id === "188485d5198-layer-16";
+  //         });
+  //       console.log(layerNames);
+  //     });
+  //   });
+  // });
+  // const allLayers = view.map.allLayers;
+
+  // console.log(allLayers);
 
   // Adds the search widget below other elements in
   // the top left corner of the view
@@ -1437,11 +1767,12 @@ require([
     webmap.load().then(function () {
       // Wait for all layers to be loaded
       const layersLoaded = webmap.layers.map((layer) => layer.load());
+
       //   console.log(layersLoaded);
       Promise.all(layersLoaded).then(() => {
         const featureLayerSources = webmap.layers
           .filter(function (layer) {
-            return layer.type === "feature";
+            return layer.type === "feature" || layer.type === "Map Service";
           })
           .map(function (featureLayer) {
             const defaultSearchFields = featureLayer.fields
@@ -1470,10 +1801,12 @@ require([
               outFields: ["*"],
               name: featureLayer.title,
               placeholder: "Search " + featureLayer.title,
-              maxSuggestions: 10,
-              maxResults: 300,
+              // minSuggestCharacters: 3,
+              maxSuggestions: 6,
+              maxResults: 6,
               searchAllEnabled: true,
-              exactMatch: true,
+              suggestionsEnabled: true,
+              // exactMatch: false,
             };
           });
 

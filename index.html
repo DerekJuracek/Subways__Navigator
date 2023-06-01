@@ -52,6 +52,7 @@
           text="Asset Locator"
         ></calcite-action>
           <calcite-action
+          id="filter"
           data-action-id="filter"
           icon="elevator"
           text="Station Plans Filter"
@@ -433,7 +434,7 @@
     
       <div id="viewDiv"></div>
       <!-- <calcite-button scale="m" icon-start="table"id="collapseButton"></calcite-button> -->
-
+      <button id="exportBtn">Export to CSV</button>
         <div id="attributeBar"></div>
    
        
@@ -457,8 +458,6 @@
       <div id="addDataLayers">
       <calcite-button id="add-data" icon-start="add-layer">
       </calcite-button>
-      
-     
   </div>
   
     <script src="index.js"></script>
