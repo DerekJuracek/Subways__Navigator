@@ -39,7 +39,7 @@
       </div>
      
       <calcite-shell-panel slot="panel-start" content-behind detached>
-        <calcite-action-bar class="calcite-m" slot="action-bar" expanded>
+        <calcite-action-bar class="calcite-m" slot="action-bar" >
           <calcite-action
             data-action-id="layers"
             icon="layers"
@@ -82,6 +82,11 @@
             data-action-id="share-container"
             icon="share"
             text="Share"
+          ></calcite-action>
+          <calcite-action
+            data-action-id="about"
+            icon="information"
+            text="About"
           ></calcite-action>
         </calcite-action-bar>
 
@@ -194,8 +199,7 @@
               </calcite-tab>
           </calcite-tabs>
         </div>
-        </calcite-panel> 
-          
+        </calcite-panel>   
 
         <calcite-panel
           heading="Asset Locator"
@@ -217,7 +221,7 @@
               style="
                 margin-bottom: 10px;
                 margin-top: 0px;
-                margin-right: 52px;
+                margin-left: 2px;
                 border: 0.5px solid lightgrey;
                 border-radius: 0.5px;
                 background-color: lightgray;
@@ -227,13 +231,14 @@
             <calcite-button
               appearance="outline-fill"
               id="sir"
+              width="auto"
               scale="m"
               label="SIR"
               >SIR Track</calcite-button
             >
             <calcite-button
               id="track"
-              width="full"
+              width="auto"
               scale="m"
               label="Track"
               appearance="outline-fill"
@@ -315,10 +320,7 @@
                   >
                     <span class="submit-text">Submit</span>
                   </calcite-button>
-                  
                 </calcite-label>
-              
-
               </form>
             </calcite-tab>
           </calcite-tabs>
@@ -338,11 +340,28 @@
                       <a href="https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=-8239587.7856%2C4973956.1963%2C-8224682.5651%2C4982526.6981%2C102100#"></a>
                     </div>
                 </calcite-notice>
-            </calcite-accordion-item>
-          
-          
-        </calcite-accordion>
-        </div>
+             </calcite-accordion-item>
+            </calcite-accordion>
+          </div>
+        </calcite-panel>
+
+        <calcite-panel
+        heading="Information"
+        height-scale="l"
+        data-panel-id="about"
+        hidden
+        >
+        <div id="about-container">
+          <calcite-accordion>
+            <calcite-accordion-item description="Link to Subways Navigator how-to page" heading="URL" icon-start="link">
+                <calcite-notice open>
+                    <div id="shareURL" slot="message">
+                      <a href="https://mtagisdev.lirr.org/dosportaldev/sharing/rest/content/items/9c7a6ac382cc449998249960157bce34/data?token=-sFCYY9CpJ-9Y8aeumEQMwAo3soMLex4BlG8K5p23zz_rESdiTQmoapHjjwIbLHuME0-5OKAUs4jZKdDEiGh_stuqgmM-m9u6tCQrWYx4cnX_6OoBFRQuz2BuX_xgH7OOb44E0r_BSM9ZQk72L2OAecHEF6_SbG25R8juB3JEVDvugZP-nKikxjQqqS1WgaLL36UHuX-d-mPM63Z0r0MAgbciD3rj9cB93mNw5fOS-k.">Subways Navigator Documentation</a>
+                    </div>
+                </calcite-notice>
+             </calcite-accordion-item>
+            </calcite-accordion>
+          </div>
         </calcite-panel>
         <calcite-panel
           id="filter-panel"
@@ -352,7 +371,6 @@
           hidden
         >
           <div id="filter-container">
-    
             <calcite-dropdown width="l">
               <calcite-button
                 alignment="center"
@@ -390,15 +408,7 @@
                 >Station</calcite-button
               >
               <calcite-dropdown-group id="Filter2" group-title="Select Station Name">
-                <!-- <calcite-dropdown-item id="filterBMT" value="BMT"
-                    >BMT</calcite-dropdown-item
-                  >
-                  <calcite-dropdown-item id="filterIND" value="IND"
-                    >IND</calcite-dropdown-item
-                  >
-                  <calcite-dropdown-item id="filterIRT" value="IRT"
-                    >IRT</calcite-dropdown-item
-                  > -->
+                  <!-- dynamically populated -->
               </calcite-dropdown-group>
             </calcite-dropdown>
             <calcite-dropdown width="l">
@@ -414,19 +424,17 @@
                 >Feature</calcite-button
               >
               <calcite-dropdown-group id="Filter3" group-title="Select Feature">
-                <!-- <calcite-dropdown-item id="filterBMT" value="BMT"
-                      >BMT</calcite-dropdown-item
-                    >
-                    <calcite-dropdown-item id="filterIND" value="IND"
-                      >IND</calcite-dropdown-item
-                    >
-                    <calcite-dropdown-item id="filterIRT" value="IRT"
-                      >IRT</calcite-dropdown-item
-                    > -->
+                 <!-- Dynamically populated -->
               </calcite-dropdown-group>
             </calcite-dropdown>
             <calcite-button scale="s" id="removeFilter" appearance="solid">Reset</calcite-button>
             <div id="filterInputs"></div>
+             <div>
+              <calcite-link id="tooltip-button">More Info</calcite-link>
+              <calcite-tooltip label="More Info" reference-element="tooltip-button" placement="bottom">
+                  <span id="filterTip">Toggle layer visibility in the layer list.</span>
+              </calcite-tooltip>
+            </div>
           </div>
         </calcite-panel>
         
@@ -434,7 +442,7 @@
     
       <div id="viewDiv"></div>
       <!-- <calcite-button scale="m" icon-start="table"id="collapseButton"></calcite-button> -->
-      <button id="exportBtn">Export to CSV</button>
+      <calcite-button id="exportBtn">Export to CSV</calcite-button>
         <div id="attributeBar"></div>
    
        
@@ -459,6 +467,7 @@
       <calcite-button id="add-data" icon-start="add-layer">
       </calcite-button>
   </div>
+
   
     <script src="index.js"></script>
   </body>

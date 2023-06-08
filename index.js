@@ -68,7 +68,7 @@ require([
     new URLSearchParams(window.location.search).get("webmap") ??
     "a5b26e6f79574142b287d3aeaeee5d50";
 
-  const token = `tbzuaQlXUrCC34Mg1nd1dRcSLjbDTzsk9eaEdK0JHZNTU6yzH1xst8A-YLJtmsW6QRpT7z8L3zz6iUKhlQT8vsxD6ZYzRo2lLPLaNxXLC_JAjsFna6dSEMypYC2Y_VrdaDFyRnwd3d6LJSiR1aaIRqVnAAYPuYEJWmRBqJLMWq_aZV45OATfkrT6ty6PfRZ-KyrxRzTB-2vOkUU1b0YWPjMSLSDJ26t2xPXHiXaHkjs.`;
+  const token = `prYZPlczjXGjVI0f71ct-SHjbTJHp5KxTQbRUaXa812MKm__VuHOdvonGzOxfYveS7N1-FHd7E7LMOzMArAmOLDmlZaBVhzckuuhQW7Nc8SOkl3OGCWIwNLFDszIr-b9cmfc3so8Winp7p2bI7OSBQ2Q5RnWBkivH6xuZurs9GUvvCRBa2PcCbhEGiFpP-jJsSXXaURr5R6LrVQDV130xzWZeCK08kTZDSb_KehfCkE.`;
 
   const graphicsLayer = new GraphicsLayer();
 
@@ -98,7 +98,7 @@ require([
     map: webmap,
     // layers: [imageLayer],
     padding: {
-      left: 196,
+      left: 44,
       top: 0,
       bottom: 0,
       right: 0,
@@ -107,6 +107,33 @@ require([
       wkid: 102100,
     },
   });
+
+  // let token;
+  // const token = view.on("load", function () {
+  //   fetch(
+  //     `https://mtagisdev.lirr.org/dosportaldev/sharing/rest/generateToken?ip=&client=referer&referer=https://dsportal1hsfhqd.lirrad.lirr.org:6443/arcgis/admin&expiration=40000`,
+  //     {
+  //       method: "POST",
+  //       body: {
+  //         type: "form-data",
+  //         username: "subwaysgisadmin",
+  //         password: "9Uvn7WQ_Portal",
+  //       },
+  //     }
+  //   )
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! Status: ${response.status}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log(data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching token:", error);
+  //     });
+  // });
 
   const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
 
@@ -118,13 +145,13 @@ require([
       return response.json();
     })
     .then((data) => {
-      console.log("Folder data:", data);
+      // console.log("Folder data:", data);
 
       if (data.services) {
         data.services.forEach((service) => {
           const listItem = createCalciteListItem(service);
           document.getElementById("featureServiceList").appendChild(listItem);
-          console.log("Feature service:", service);
+          // console.log("Feature service:", service);
         });
       }
     })
@@ -133,12 +160,12 @@ require([
     });
 
   function createCalciteListItem(service) {
-    console.log(service.name);
+    // console.log(service.name);
     const listItem = document.createElement("calcite-list-item");
     // listItem.display.style.width = "250px";
     itemsName = service.name.split("/")[1];
     let thumbnail = `images/${itemsName}.png`;
-    console.log(thumbnail);
+    // console.log(thumbnail);
     itemsLabel = itemsName.replaceAll("_", " ");
     listItem.style.fontWeight = "bold";
     listItem.label = itemsLabel;
@@ -344,62 +371,69 @@ require([
       });
   };
 
+  // const exportCSVButton = document.getElementById("exportBtn");
+  // view.ui.add(exportCSVButton, "top-right");
+
+  // let featureTable;
+  // let layer;
+
+  // // Event listener for "Export to CSV" button
+  // document.getElementById("exportBtn").addEventListener("click", function () {
+  //   let featuresToExport;
+
+  //   // Check if there are selected items
+  //   if (featureTable.viewModel.highlightIds > 0) {
+  //     // Export only selected items
+  //     featuresToExport = featureTable.viewModel;
+  //     console.log(featureTable.selectedItems);
+
+  //     // Continue with exporting
+  //     exportToCSV(featuresToExport);
+  //   } else {
+  //     // Export all features
+  //     layer.queryFeatures().then(function (results) {
+  //       featuresToExport = results.features;
+
+  //       // Continue with exporting
+  //       exportToCSV(featuresToExport);
+  //     });
+  //   }
+  // });
+
+  // // Function to export to CSV
+  // function exportToCSV(featuresToExport) {
+  //   // Convert the features to CSV
+  //   let csvData = convertToCSV(featuresToExport);
+
+  //   // Create a Blob from the CSV data
+  //   let blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+
+  //   // Create a URL for the Blob
+  //   let url = URL.createObjectURL(blob);
+
+  //   // Create a link element with the Blob URL as the href
+  //   let link = document.createElement("a");
+  //   link.setAttribute("href", url);
+  //   link.setAttribute("download", "myData.csv");
+  //   link.style.visibility = "hidden";
+  //   document.body.appendChild(link);
+
+  //   // Click the link to start the download
+  //   link.click();
+
+  //   // Remove the link element from the DOM
+  //   document.body.removeChild(link);
+  // }
+
   const exportCSVButton = document.getElementById("exportBtn");
-  view.ui.add(exportCSVButton, "top-right");
+  view.ui.add(exportCSVButton, "bottom-right");
 
   let featureTable;
   let layer;
 
-  // Event listener for "Export to CSV" button
-  document.getElementById("exportBtn").addEventListener("click", function () {
-    let featuresToExport;
-
-    // Check if there are selected items
-    if (featureTable.selectedItems.length > 0) {
-      // Export only selected items
-      featuresToExport = featureTable.selectedItems;
-
-      // Continue with exporting
-      exportToCSV(featuresToExport);
-    } else {
-      // Export all features
-      layer.queryFeatures().then(function (results) {
-        featuresToExport = results.features;
-
-        // Continue with exporting
-        exportToCSV(featuresToExport);
-      });
-    }
-  });
-
-  // Function to export to CSV
-  function exportToCSV(featuresToExport) {
-    // Convert the features to CSV
-    let csvData = convertToCSV(featuresToExport);
-
-    // Create a Blob from the CSV data
-    let blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-
-    // Create a URL for the Blob
-    let url = URL.createObjectURL(blob);
-
-    // Create a link element with the Blob URL as the href
-    let link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "myData.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-
-    // Click the link to start the download
-    link.click();
-
-    // Remove the link element from the DOM
-    document.body.removeChild(link);
-  }
-
   async function customAction(event) {
     // Handle custom action click event
-    console.log("Custom action clicked:", event);
+    // console.log("Custom action clicked:", event);
     layer = event.item.layer;
 
     const container = document.getElementById("attributeBar");
@@ -407,6 +441,7 @@ require([
 
     // view.padding = { bottom: 0 };
     if (!featureTable) {
+      exportCSVButton.style.display = "block";
       const tableContainer = document.createElement("div");
       container.appendChild(tableContainer);
       // Create a new FeatureTable for the layer
@@ -429,13 +464,105 @@ require([
         },
       });
 
+      let selectedIds = []; // This will store ids of selected features
+
+      // Event listener for "Export to CSV" button
+      exportCSVButton.addEventListener("click", function () {
+        let featuresToExport;
+
+        if (selectedIds.length > 0) {
+          // If there are selected items, export only them
+          const query = layer.createQuery();
+          query.objectIds = selectedIds;
+          layer.queryFeatures(query).then(function (results) {
+            featuresToExport = results.features;
+
+            // Continue with exporting
+            exportToCSV(featuresToExport);
+          });
+        } else {
+          // Otherwise export all features
+          layer.queryFeatures().then(function (results) {
+            featuresToExport = results.features;
+            console.log(featuresToExport);
+
+            // Continue with exporting
+            exportToCSV(featuresToExport);
+          });
+        }
+      });
+
+      // Function to export to CSV
+      function exportToCSV(featuresToExport) {
+        let fieldNames = layer.fields.map((field) => field.name);
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        // Add field names as the first row in your CSV
+        csvContent += fieldNames.join(",") + "\r\n";
+
+        featuresToExport.forEach((feature) => {
+          let row = fieldNames.map(
+            (fieldName) => feature.attributes[fieldName]
+          );
+          csvContent += row.join(",") + "\r\n";
+          // const row = Object.values(feature.attributes).join(",");
+          // csvContent += row + "\r\n";
+        });
+
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "export.csv");
+        link.click();
+
+        URL.revokeObjectURL(url);
+        console.log(`CSV has been exported`);
+      }
+
+      // When a feature is selected or deselected
+      featureTable.highlightIds.on("change", (event) => {
+        // Update selectedIds array based on what is added or removed
+        selectedIds = selectedIds
+          .concat(event.added)
+          .filter((id) => !event.removed.includes(id));
+      });
+
       console.log(featureTable);
+
+      featureTable.highlightIds.on("change", (event) => {
+        let fieldnames = featureTable.columns.items;
+        console.log(featureTable.viewModel);
+        console.log("features selected", event.added);
+        console.log("features deselected", event.removed);
+
+        // let csvContent = "data:text/csv;charset=utf-8,";
+        // fieldnames.forEach((feature) => {
+        //   const row = Object.values(feature.attributes).join(",");
+        //   csvContent += row + "\r\n";
+      });
+
+      // const blob = new Blob([csvContent], { type: "text/csv" });
+      // const url = URL.createObjectURL(blob);
+
+      // const link = document.createElement("a");
+      // link.setAttribute("href", url);
+      // link.setAttribute("download", "export.csv");
+
+      // // Trigger the download when a button is clicked
+      // exportCSVButton.addEventListener("click", () => {
+      //   link.click();
+      //   URL.revokeObjectURL(url);
+      //   console.log(`this is the export button`);
+      // });
+      // });
 
       // reactiveUtils.when(
       //   () => view.stationary === true,
       //   () => {
       //     if (view.extent) {
-      //       featureTable.filterGeometry = view.extent;
+      //       featureTable.Geometry = view.extent;
       //     }
       //   },
       //   {
@@ -484,6 +611,7 @@ require([
     } else {
       featureTable.destroy();
       featureTable = null;
+      exportCSVButton.style.display = "none";
 
       while (container.firstChild) {
         container.removeChild(container.firstChild);
@@ -667,125 +795,6 @@ require([
   const submitShp = document.getElementById("submitShp");
   submitShp.addEventListener("click", generateFeatureCollection);
 
-  // let addDataPower = document.getElementById("powerSubstationsAction");
-  // let addDataComm = document.getElementById("commAction");
-  // let addDataFan = document.getElementById("fanAction");
-  // let addDataSpans = document.getElementById("spanAction");
-
-  // addDataPower.addEventListener("click", function () {
-  //   console.log("add data button clicked");
-  //   if (powerSubsLayer) {
-  //     // map.removeAll();
-  //     webmap.remove(powerSubsLayer);
-  //     powerSubsLayer = null;
-  //     view.graphics.removeAll();
-  //     addDataPower.icon = "add-layer";
-  //     // featureLayer.destroy();
-  //     // featureLayer = null;
-  //     // view.graphics.removeAll();
-  //   } else {
-  //     addFeatureLayer();
-  //     addDataPower.icon = "minus-circle";
-  //   }
-  // });
-
-  // let powerSubsLayer = null;
-
-  // function addFeatureLayer() {
-  //   // Carbon storage of trees in Warren Wilson College.
-  //   powerSubsLayer = new FeatureLayer({
-  //     url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT/Power_Substations/MapServer/0",
-  //   });
-
-  //   webmap.add(powerSubsLayer);
-  // }
-
-  // addDataComm.addEventListener("click", function () {
-  //   console.log("add data button clicked");
-  //   if (commsLayer) {
-  //     // map.removeAll();
-  //     webmap.remove(commsLayer);
-  //     commsLayer = null;
-  //     view.graphics.removeAll();
-  //     addDataComm.icon = "add-layer";
-  //     // featureLayer.destroy();
-  //     // featureLayer = null;
-  //     // view.graphics.removeAll();
-  //   } else {
-  //     addCommsLayer();
-  //     addDataComm.icon = "minus-circle";
-  //   }
-  // });
-
-  // let commsLayer = null;
-
-  // function addCommsLayer() {
-  //   // Carbon storage of trees in Warren Wilson College.
-  //   commsLayer = new FeatureLayer({
-  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Communications_Rooms/MapServer/0",
-  //   });
-
-  //   webmap.add(commsLayer);
-  // }
-
-  // addDataFan.addEventListener("click", function () {
-  //   console.log("add data button clicked");
-  //   if (fansLayer) {
-  //     // map.removeAll();
-  //     webmap.remove(fansLayer);
-  //     fansLayer = null;
-  //     view.graphics.removeAll();
-  //     addDataFan.icon = "add-layer";
-  //     // featureLayer.destroy();
-  //     // featureLayer = null;
-  //     // view.graphics.removeAll();
-  //   } else {
-  //     addFansLayer();
-  //     addDataFan.icon = "minus-circle";
-  //   }
-  // });
-
-  // let fansLayer = null;
-
-  // function addFansLayer() {
-  //   // Carbon storage of trees in Warren Wilson College.
-  //   fansLayer = new FeatureLayer({
-  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Fan_Plants/MapServer/0",
-  //   });
-
-  //   webmap.add(fansLayer);
-  // }
-
-  // addDataSpans.addEventListener("click", function () {
-  //   console.log("add data button clicked");
-  //   if (spansLayer) {
-  //     // map.removeAll();
-  //     webmap.remove(spansLayer);
-  //     spansLayer = null;
-  //     view.graphics.removeAll();
-  //     addDataSpans.icon = "add-layer";
-  //     // featureLayer.destroy();
-  //     // featureLayer = null;
-  //     // view.graphics.removeAll();
-  //   } else {
-  //     addSpansLayer();
-  //     addDataSpans.icon = "minus-circle";
-  //   }
-  // });
-
-  // let spansLayer = null;
-
-  // function addSpansLayer() {
-  //   // Carbon storage of trees in Warren Wilson College.
-  //   spansLayer = new FeatureLayer({
-  //     url: "https://gis.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT/Spans/MapServer/0",
-  //   });
-
-  //   webmap.add(spansLayer);
-  // }
-
-  // Add the ImageryLayer, but it already exists in the webmap
-  // Want solution to pull from webmap, not adding it again
   const filterAction = document.getElementById("filter");
 
   let Imagerylayer1;
@@ -815,25 +824,6 @@ require([
       }
     });
   });
-
-  // webmap.when(function () {
-  //   reactiveUtils.watch(() => [
-  //     view.map.allLayers.map((layer) => {
-  //       if (layer.title === "Station Plans" && layer.visible === false) {
-  //         filterAction.addEventListener("click", () => {
-  //           let Imagerylayer1 = new ImageryLayer({
-  //             url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer",
-  //           });
-  //           webmap.add(Imagerylayer1);
-  //         })
-
-  //         // console.log(layer); // log the layer here
-  //         // return layer.visible;
-  //       } else {
-  //        return
-  //       }
-  //   ]);
-  // });
 
   async function populateDropdownItems(division) {
     let divison = division.toUpperCase();
@@ -1336,7 +1326,7 @@ require([
     view,
     container: "basemaps-container",
     basemapTitle: "",
-    baseHeading: "hey you",
+
     // messages.baseHeading: "",
   });
   console.log(basemaps);
@@ -1411,7 +1401,7 @@ require([
     container: "layers-container",
     listItemCreatedFunction: function (event) {
       const item = event.item;
-      console.log(item);
+      // console.log(item);
 
       item.actionsSections = [
         [
@@ -1426,6 +1416,8 @@ require([
       createOpacitySlider(item);
     },
   });
+
+  layerList.operationalItems.reverse();
 
   // async function moreInformation(item) {
   //   await item.layers.when();
@@ -1593,7 +1585,7 @@ require([
   const searchWidget = new Search({
     view: view,
     locationEnabled: false,
-    searchAllEnabled: false,
+    searchAllEnabled: true,
     includeDefaultSources: true,
     suggestionsEnabled: true,
     exactMatch: false,
@@ -1798,6 +1790,7 @@ require([
               layer: featureLayer,
               searchFields: searchFields,
               displayField: displayField,
+
               outFields: ["*"],
               name: featureLayer.title,
               placeholder: "Search " + featureLayer.title,
