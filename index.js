@@ -3,8 +3,6 @@ require([
   "esri/widgets/Expand",
   "esri/widgets/Sketch",
   "esri/WebMap",
-  "esri/portal/Portal",
-  "esri/portal/PortalGroup",
   "esri/widgets/FeatureTable",
   "esri/core/reactiveUtils",
   "esri/layers/CSVLayer",
@@ -34,8 +32,6 @@ require([
   Expand,
   Sketch,
   WebMap,
-  Portal,
-  PortalGroup,
   FeatureTable,
   reactiveUtils,
   CSVLayer,
@@ -308,7 +304,7 @@ require([
     let anchor = shareURL.querySelector("a");
     // Access the href attribute of the <a> element
     let hrefValue = anchor.getAttribute("href");
-    console.log("Current href value:", hrefValue);
+    // console.log("Current href value:", hrefValue);
     let currentState = view.state.extent;
     let min = [currentState.xmin, currentState.ymin];
     let max = [currentState.xmax, currentState.ymax];
@@ -322,7 +318,6 @@ require([
     anchor.textContent = newHrefValue;
 
     console.log(anchor);
-    // shareURL.textContent = newHrefValue;
   });
 
   window.onload = function () {
@@ -371,60 +366,6 @@ require([
       });
   };
 
-  // const exportCSVButton = document.getElementById("exportBtn");
-  // view.ui.add(exportCSVButton, "top-right");
-
-  // let featureTable;
-  // let layer;
-
-  // // Event listener for "Export to CSV" button
-  // document.getElementById("exportBtn").addEventListener("click", function () {
-  //   let featuresToExport;
-
-  //   // Check if there are selected items
-  //   if (featureTable.viewModel.highlightIds > 0) {
-  //     // Export only selected items
-  //     featuresToExport = featureTable.viewModel;
-  //     console.log(featureTable.selectedItems);
-
-  //     // Continue with exporting
-  //     exportToCSV(featuresToExport);
-  //   } else {
-  //     // Export all features
-  //     layer.queryFeatures().then(function (results) {
-  //       featuresToExport = results.features;
-
-  //       // Continue with exporting
-  //       exportToCSV(featuresToExport);
-  //     });
-  //   }
-  // });
-
-  // // Function to export to CSV
-  // function exportToCSV(featuresToExport) {
-  //   // Convert the features to CSV
-  //   let csvData = convertToCSV(featuresToExport);
-
-  //   // Create a Blob from the CSV data
-  //   let blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-
-  //   // Create a URL for the Blob
-  //   let url = URL.createObjectURL(blob);
-
-  //   // Create a link element with the Blob URL as the href
-  //   let link = document.createElement("a");
-  //   link.setAttribute("href", url);
-  //   link.setAttribute("download", "myData.csv");
-  //   link.style.visibility = "hidden";
-  //   document.body.appendChild(link);
-
-  //   // Click the link to start the download
-  //   link.click();
-
-  //   // Remove the link element from the DOM
-  //   document.body.removeChild(link);
-  // }
-
   const exportCSVButton = document.getElementById("exportBtn");
   view.ui.add(exportCSVButton, "bottom-right");
 
@@ -449,7 +390,6 @@ require([
         view: view,
         layer: layer,
         container: tableContainer,
-
         visibleElements: {
           menuItems: {
             autoRefresh: true,
@@ -533,42 +473,10 @@ require([
 
       featureTable.highlightIds.on("change", (event) => {
         let fieldnames = featureTable.columns.items;
-        console.log(featureTable.viewModel);
-        console.log("features selected", event.added);
-        console.log("features deselected", event.removed);
-
-        // let csvContent = "data:text/csv;charset=utf-8,";
-        // fieldnames.forEach((feature) => {
-        //   const row = Object.values(feature.attributes).join(",");
-        //   csvContent += row + "\r\n";
+        // console.log(featureTable.viewModel);
+        // console.log("features selected", event.added);
+        // console.log("features deselected", event.removed);
       });
-
-      // const blob = new Blob([csvContent], { type: "text/csv" });
-      // const url = URL.createObjectURL(blob);
-
-      // const link = document.createElement("a");
-      // link.setAttribute("href", url);
-      // link.setAttribute("download", "export.csv");
-
-      // // Trigger the download when a button is clicked
-      // exportCSVButton.addEventListener("click", () => {
-      //   link.click();
-      //   URL.revokeObjectURL(url);
-      //   console.log(`this is the export button`);
-      // });
-      // });
-
-      // reactiveUtils.when(
-      //   () => view.stationary === true,
-      //   () => {
-      //     if (view.extent) {
-      //       featureTable.Geometry = view.extent;
-      //     }
-      //   },
-      //   {
-      //     initial: true,
-      //   }
-      // );
 
       view.on("immediate-click", (event) => {
         view.hitTest(event).then((response) => {
@@ -1076,9 +984,9 @@ require([
     updateInfoContainer(lastClickedButtonId, inputValue1, inputValue2);
     const assetLabel = document.querySelector("#assetLabel");
 
+    // Expand to show first tab of Asset Locator App
+
     if (lastClickedButtonId === "track") {
-      // console.log(button1id);
-      // console.log(`Track Button label is: ${trackButton.label}`);
       fetch(
         `https://mtagisdev.lirr.org/dosserverdev/rest/services/LRS/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/1/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue1}%22%2C%22measure%22%3A${inputValue2}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
         {
@@ -1199,6 +1107,8 @@ require([
       inputValue4,
       inputValue5
     );
+
+    // Expand to show second tab of Asset Locator App
 
     if (lastClickedButtonId === "track") {
       fetch(
@@ -1326,14 +1236,8 @@ require([
     view,
     container: "basemaps-container",
     basemapTitle: "",
-
-    // messages.baseHeading: "",
   });
-  console.log(basemaps);
-
-  // basemaps.baseHeading = "";
-
-  // basemapsItems.label = "none";
+  // console.log(basemaps);
 
   basemaps.visibleElements = {
     baseHeading: false,
@@ -1345,7 +1249,7 @@ require([
     errors: true,
   };
 
-  console.log(basemaps.visibleElements);
+  // console.log(basemaps.visibleElements);
 
   view.when().then(() => {
     // Get base layer titles dynamically
@@ -1417,43 +1321,27 @@ require([
     },
   });
 
-  layerList.operationalItems.reverse();
-
-  // async function moreInformation(item) {
-  //   await item.layers.when();
-  //   if (item.children.length < 1) {
-  //     const layer = item.layer.url;
-
-  //     const restURL = `${layer}`;
-  //     // const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
-
-  //     // Create an "About" link
-  //     const aboutLink = document.createElement("div");
-  //     window.open(restURL);
-  //     // aboutLink.href = restURL;
-  //     aboutLink.textContent = "About this layer";
-  //     // aboutLink.target = "_blank";
-  //     // aboutLink.title = "Layer Information";
-  //     aboutLink.className = "esri-icon-description";
-  //     aboutLink.id = "information";
-  //   }
-  // }
-
   async function createOpacitySlider(item) {
     await item.layer.when();
+    // console.log(item);
+    // console.log(item.layer);
+
+    const layer2 = item.layer;
+    const layerView = item.layerView;
+    // console.log(layerView);
+    // console.log(layer2);
+    const fields = item.layer.fields;
+    // const fields2 = item.layer.fields;
+
+    // If you need to see fields for a layer, uncomment the line below
+    // console.log(fields);
 
     if (item.children.length < 1) {
       const layer = item.layer.url;
       const restURL = `${layer}`;
 
-      // title: "Layer information",
-      //     // className: "esri-icon-description",
-      //     // id: "information",
-
       // Create an "About" link
       const aboutLink = document.createElement("div");
-      // aboutLink.innerHTML = "<p>More Information</p>";
-      // aboutLink.className = "esri-icon-description";
       aboutLink.id = "information";
       aboutLink.title = "More Information";
 
@@ -1463,7 +1351,156 @@ require([
       aboutIcon.className = "esri-icon-description custom-action-icon";
       aboutLink.appendChild(aboutIcon);
 
-      // Handle the click event on the "About" link
+      // div to hold new definition expression
+      const filterDiv = document.createElement("div");
+      filterDiv.id = "filterDiv";
+      filterDiv.title = "Filter";
+
+      const filterDiv2 = document.createElement("div");
+      filterDiv2.id = "filterDiv";
+      filterDiv2.title = "Filter 2";
+
+      const filterDiv3 = document.createElement("div");
+      filterDiv3.id = "filterDiv";
+      filterDiv3.title = "Filter 3";
+
+      var combobox1 = document.createElement("calcite-combobox");
+      combobox1.id = "combo1";
+      combobox1.placeholder = "Field";
+      combobox1.scale = "xs";
+      combobox1.label = "Filter 1";
+      combobox1.maxItems = "4";
+      combobox1.selectionMode = "single";
+      filterDiv.appendChild(combobox1);
+
+      var combobox2 = document.createElement("calcite-combobox");
+      combobox2.id = "combo2";
+      combobox2.placeholder = "is";
+      combobox2.scale = "xs";
+      combobox2.label = "Filter 2";
+      combobox2.value = "=";
+      combobox2.selectionMode = "single";
+
+      // Define labels and values
+      var labelsAndValues = [
+        { label: "is", value: "=" },
+        { label: "is not", value: "<>" },
+        // { label: "contains", value: "LIKE" },
+      ];
+
+      // Create a calcite-combobox-item for each label and value
+      labelsAndValues.forEach((item) => {
+        var option = document.createElement("calcite-combobox-item");
+        option.setAttribute("scale", "xs");
+        // option.scale = "xs";
+        option.value = item.value;
+        option.textLabel = item.label;
+        combobox2.appendChild(option);
+      });
+
+      filterDiv2.appendChild(combobox2);
+
+      let selectedValue2 = "=";
+      let selected3Array = [];
+
+      // let defaultSelectedValue2;
+
+      combobox2.addEventListener("calciteComboboxItemChange", (event) => {
+        // defaultSelectedValue2 = "=";
+
+        selectedValue2 = event.target.value;
+        console.log(selectedValue2);
+        console.log(combobox2);
+        selected3Array.push(selectedValue2);
+        console.log(selected3Array);
+      });
+      // filterDiv2.appendChild(combobox2);
+
+      var combobox3 = document.createElement("calcite-combobox");
+      combobox3.id = "combo3";
+      combobox3.placeholder = "Value";
+      combobox3.scale = "xs";
+      combobox3.label = "Filter 3";
+      combobox3.maxItems = "6";
+      combobox3.selectionMode = "multiple";
+      filterDiv3.appendChild(combobox3);
+
+      // Populate combobox1 with field data
+      fields.forEach((field) => {
+        const option1 = document.createElement("calcite-combobox-item");
+        option1.setAttribute("scale", "xs");
+        option1.value = field.name;
+        option1.textLabel = field.alias;
+
+        // Append each option to the combobox right away
+        combobox1.appendChild(option1);
+      });
+
+      // Populate combobox2 when a field is selected in combobox1
+      combobox1.addEventListener("calciteComboboxChange", async (event) => {
+        // Clear current options in combobox2
+        while (combobox3.firstChild) {
+          combobox3.firstChild.remove();
+        }
+
+        // Get selected field name
+        const fieldName = event.target.selectedItems[0].value;
+        console.log(fieldName);
+
+        // Query unique values of the selected field
+        const uniqueValueQuery = layer2.createQuery();
+        uniqueValueQuery.returnGeometry = false;
+        uniqueValueQuery.returnDistinctValues = true;
+        uniqueValueQuery.multiSelectionEnabled = true;
+        uniqueValueQuery.outFields = `${fieldName}`;
+
+        const results = await layer2.queryFeatures(uniqueValueQuery);
+
+        let selectedValue3;
+        let selectedValue3Array = [];
+        let selectedVal;
+        let selectedValString;
+        console.log(selectedValue3Array);
+
+        // Create and append a new option for each unique value
+        results.features.forEach((feature) => {
+          const uniqueValue = feature.attributes[fieldName];
+          console.log(feature.attributes);
+
+          console.log("uniqueValue:", uniqueValue);
+          const option3 = document.createElement("calcite-combobox-item");
+          // option3.scale = "xs";
+          option3.value = uniqueValue;
+          option3.textLabel = uniqueValue;
+          combobox3.appendChild(option3);
+        });
+
+        combobox3.addEventListener("calciteComboboxChange", (event) => {
+          selectedValue3 = event.target.selectedItems[0].value;
+          selectedVal = event.target.selectedItems.map((items) => items.value);
+          selectedValString = selectedVal
+            .map((value) => `'${value}'`)
+            .join(",");
+          console.log(selectedVal);
+          console.log(selectedValString);
+          // console.log(selectedValue3);
+          // selectedValue3Array.push(selectedValue3);
+          layer2.definitionExpression = createdefinitionExpression();
+          // console.log(selectedValue3Array);
+        });
+
+        function createdefinitionExpression() {
+          if (selectedValue2 === "=" && selectedVal.length >= 1) {
+            // console.log(selectedVal[0], selectedVal[1]);
+            return `${fieldName} IN (${selectedValString})`;
+          } else {
+            return `${fieldName} NOT IN (${selectedValString})`;
+          }
+        }
+
+        console.log(selectedValue3Array);
+      });
+
       aboutIcon.onclick = function () {
         window.open(restURL);
       };
@@ -1485,7 +1522,7 @@ require([
       });
 
       item.panel = {
-        content: [opacityDiv, aboutLink],
+        content: [opacityDiv, filterDiv, filterDiv2, filterDiv3, aboutLink],
         className: "esri-icon-sliders-horizontal",
         title: "Change layer settings",
         label: "Change layer settings",
@@ -1497,70 +1534,6 @@ require([
       });
     }
   }
-
-  // async function createOpacitySlider(item) {
-  //   await item.layer.when();
-
-  //   if (item.children.length < 1) {
-  //     const layer = item.layer.url;
-  //     const restURL = `${layer}`;
-  //     // const layerUrl = `https://mtagisdev.lirr.org/dosportaldev/home/item.html?id=${layerId}`;
-
-  //     // Create an "About" link
-  //     const aboutLink = document.createElement("div");
-  //     window.open(restURL);
-  //     // aboutLink.href = restURL;
-  //     aboutLink.textContent = "About this layer";
-  //     // aboutLink.target = "_blank";
-  //     // aboutLink.title = "Layer Information";
-  //     aboutLink.className = "esri-icon-description";
-  //     aboutLink.id = "information";
-  //     // const layerId = item.layer;
-
-  //     // title: "Layer information",
-  //     // className: "esri-icon-description",
-  //     // id: "information",// open in a new tab
-
-  //     const opacityDiv = document.createElement("div");
-  //     opacityDiv.innerHTML = "<p>Layer Opacity (%)</p>";
-  //     opacityDiv.id = "opacityDiv";
-
-  //     // moreInfo.innerHTML = "<p>More Info</p>";
-  //     // moreInfo.innerHTML = `<a href="https://www.w3schools.com">More Info</a>`;
-
-  //     const opacitySlider = new Slider({
-  //       container: opacityDiv,
-  //       min: 0,
-  //       max: 1,
-  //       values: [0.75],
-  //       precision: 2,
-  //       visibleElements: {
-  //         labels: true,
-  //         rangeLabels: true,
-  //       },
-  //     });
-
-  //     item.panel = {
-  //       content: [opacityDiv, aboutLink],
-  //       className: "esri-icon-sliders-horizontal",
-  //       title: "Change layer settings",
-  //       label: "Change layer settings",
-  //     };
-
-  //     opacitySlider.on("thumb-drag", (event) => {
-  //       const { value } = event;
-  //       item.layer.opacity = value;
-  //     });
-  //   }
-  // }
-
-  // view.when().then(() => {
-  //   defineActions;
-
-  // });
-
-  // view.on();
-  // window.open(visibleLayer.url);
 
   layerList.on("trigger-action", createOpacitySlider);
   layerList.on("trigger-action", customAction);
@@ -1726,43 +1699,17 @@ require([
     }
   }
 
-  // Derek Array Practice
-
-  // view.when(function () {
-  //   webmap.load().then(function () {
-  //     const allLayers = webmap.layers.map((layer) => layer.load());
-  //     console.log(allLayers);
-
-  //     Promise.all(allLayers).then(() => {
-  //       const layerNames = webmap.layers
-  //         .filter(function (layer) {
-  //           return (
-  //             layer.title === "Single Line Drawings" ||
-  //             layer.title === "Double Line Drawings"
-  //           );
-  //         })
-  //         .map(function (featureLay) {
-  //           return featureLay.id === "188485d5198-layer-16";
-  //         });
-  //       console.log(layerNames);
-  //     });
-  //   });
-  // });
-  // const allLayers = view.map.allLayers;
-
-  // console.log(allLayers);
-
-  // Adds the search widget below other elements in
-  // the top left corner of the view
-
   view.when(function () {
     webmap.load().then(function () {
       // Wait for all layers to be loaded
-      const layersLoaded = webmap.layers.map((layer) => layer.load());
+      let layersLoaded = webmap.layers.map((layer) => layer.load());
+      // console.log(layersLoaded);
+      // layersLoaded.reverse();
 
-      //   console.log(layersLoaded);
+      // console.log(layersLoaded);
       Promise.all(layersLoaded).then(() => {
-        const featureLayerSources = webmap.layers
+        const reversedLayers = webmap.layers.slice().reverse();
+        const featureLayerSources = reversedLayers
           .filter(function (layer) {
             return layer.type === "feature" || layer.type === "Map Service";
           })
@@ -1790,7 +1737,6 @@ require([
               layer: featureLayer,
               searchFields: searchFields,
               displayField: displayField,
-
               outFields: ["*"],
               name: featureLayer.title,
               placeholder: "Search " + featureLayer.title,
@@ -1799,10 +1745,31 @@ require([
               maxResults: 6,
               searchAllEnabled: true,
               suggestionsEnabled: true,
+
               // exactMatch: false,
             };
           });
+        // Add event listener for search-focus event
+        // searchWidget.on("suggest-start", function (event) {
+        //   const changeSearch = `%${event.searchTerm}`;
+        //   console.log(changeSearch);
+        //   searchWidget.searchTerm = `%${event.searchTerm}`;
+        // });
+        let searchQuery = "";
 
+        searchWidget.on("suggest-start", function (event) {
+          if (!event.searchTerm.startsWith("%")) {
+            searchQuery = `%${event.searchTerm}`;
+            searchWidget.searchTerm = searchQuery;
+          } else {
+            searchQuery = event.searchTerm;
+          }
+        });
+
+        // // Add event listener for search-clear event
+        // searchWidget.on("search-clear", function () {
+        //   searchWidget.activeSource.searchTerm = `%`;
+        // });
         searchWidget.sources = featureLayerSources;
       });
     });
@@ -1854,26 +1821,4 @@ require([
     document.querySelector("calcite-shell").hidden = false;
     document.querySelector("calcite-loader").hidden = true;
   });
-
-  // Load the webmap
-  // webmap.load().then(function () {
-  //   // Once the webmap is loaded, access its layers
-  //   const featureLayerSources = webmap.layers;
-
-  //   // Use the first feature layer in the webmap, or choose a specific one
-  //   const desiredFeatureLayer = featureLayerSources.getItemAt(0);
-
-  //   // Create the FeatureTable widget
-  //   const featureTable = new FeatureTable({
-  //     view: view,
-  //     layer: desiredFeatureLayer,
-  //     container: document.getElementById("feature-table-content"),
-  //     columnReorderingEnabled: true,
-  //     columnResizingEnabled: true,
-  //   });
-  // });
-  // webmap.load().then(function () {
-  //   const MapLayerSources = webmap.layers;
-  //   console.log(MapLayerSources);
-  // });
 });
