@@ -66,7 +66,7 @@ require([
     new URLSearchParams(window.location.search).get("webmap") ??
     "a5b26e6f79574142b287d3aeaeee5d50";
 
-  let token = `prYZPlczjXGjVI0f71ct-SHjbTJHp5KxTQbRUaXa812MKm__VuHOdvonGzOxfYveS7N1-FHd7E7LMOzMArAmOLDmlZaBVhzckuuhQW7Nc8SOkl3OGCWIwNLFDszIr-b9cmfc3so8Winp7p2bI7OSBQ2Q5RnWBkivH6xuZurs9GUvvCRBa2PcCbhEGiFpP-jJsSXXaURr5R6LrVQDV130xzWZeCK08kTZDSb_KehfCkE.`;
+  let token = `7VEF4-f9Vj8ARl5BG8Bd2CTlCneqKr1o13On4Itpcj5Q-NkmugErS_W-_0LGvXzSAR3ZeDp-WntTGxpLnWN_JEeNzZIA_F2NYPoRo_HSPYMcqPhVKmURm9shsTRFLRZrl-LDPNU-lawKj1mraedR_KpDzqP0Hz__uEdqJJOeZK5ju0lq50rYRsfer9UswppeUBH8JLmNbed4o_cpSrXl5kc3h5Of_XlE9ny8damIdCo.`;
 
   const graphicsLayer = new GraphicsLayer();
 
@@ -99,59 +99,6 @@ require([
   //   .then(function (credential) {
   //     console.log(credential.token); // You can get the token here
   //   });
-
-  window.addEventListener("load", function () {
-    const url =
-      "https://mtagisdev.lirr.org/dosportaldev/sharing/rest/generateToken?ip=&client=referer&referer=https://dsportal1hsfhqd.lirrad.lirr.org:6443/arcgis/admin&expiration=40000&f=json";
-
-    const credentials = {
-      username: "subwaysgisadmin",
-      password: "9Uvn7WQ_Portal",
-    };
-
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams(credentials),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        token = data.token;
-        console.log(token);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  });
-
-  // let token;
-  // const token = view.on("load", function () {
-  //   fetch(
-  //     `https://mtagisdev.lirr.org/dosportaldev/sharing/rest/generateToken?ip=&client=referer&referer=https://dsportal1hsfhqd.lirrad.lirr.org:6443/arcgis/admin&expiration=40000`,
-  //     {
-  //       method: "POST",
-  //       body: {
-  //         type: "form-data",
-  //         username: "subwaysgisadmin",
-  //         password: "9Uvn7WQ_Portal",
-  //       },
-  //     }
-  //   )
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! Status: ${response.status}`);
-  //       }
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching token:", error);
-  //     });
-  // });
 
   const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
 
