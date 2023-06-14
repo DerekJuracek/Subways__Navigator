@@ -1,5 +1,6 @@
 require([
   "esri/config",
+  // "esri/IdentityManager",
   "esri/widgets/Expand",
   "esri/widgets/Sketch",
   "esri/WebMap",
@@ -29,6 +30,7 @@ require([
   "esri/widgets/CoordinateConversion",
 ], function (
   esriConfig,
+  // esriId,
   Expand,
   Sketch,
   WebMap,
@@ -64,23 +66,11 @@ require([
     new URLSearchParams(window.location.search).get("webmap") ??
     "a5b26e6f79574142b287d3aeaeee5d50";
 
-  const token = `prYZPlczjXGjVI0f71ct-SHjbTJHp5KxTQbRUaXa812MKm__VuHOdvonGzOxfYveS7N1-FHd7E7LMOzMArAmOLDmlZaBVhzckuuhQW7Nc8SOkl3OGCWIwNLFDszIr-b9cmfc3so8Winp7p2bI7OSBQ2Q5RnWBkivH6xuZurs9GUvvCRBa2PcCbhEGiFpP-jJsSXXaURr5R6LrVQDV130xzWZeCK08kTZDSb_KehfCkE.`;
+  let token = `prYZPlczjXGjVI0f71ct-SHjbTJHp5KxTQbRUaXa812MKm__VuHOdvonGzOxfYveS7N1-FHd7E7LMOzMArAmOLDmlZaBVhzckuuhQW7Nc8SOkl3OGCWIwNLFDszIr-b9cmfc3so8Winp7p2bI7OSBQ2Q5RnWBkivH6xuZurs9GUvvCRBa2PcCbhEGiFpP-jJsSXXaURr5R6LrVQDV130xzWZeCK08kTZDSb_KehfCkE.`;
 
   const graphicsLayer = new GraphicsLayer();
 
   const portalUrl = esriConfig.portalUrl;
-
-  document.getElementById("uploadForm").addEventListener("change", (event) => {
-    const fileName = event.target.value.toLowerCase();
-
-    if (fileName.indexOf(".zip") !== -1) {
-      //is file a zip - if not notify user
-      generateFeatureCollection(fileName);
-    } else {
-      document.getElementById("upload-status").innerHTML =
-        '<p style="color:red">Add shapefile as .zip file</p>';
-    }
-  });
 
   const webmap = new WebMap({
     portalItem: {
@@ -102,6 +92,38 @@ require([
     spatialReference: {
       wkid: 102100,
     },
+  });
+
+  // esriId
+  //   .getCredential("https://mtagisdev.lirr.org/dosportaldev/")
+  //   .then(function (credential) {
+  //     console.log(credential.token); // You can get the token here
+  //   });
+
+  window.addEventListener("load", function () {
+    const url =
+      "https://mtagisdev.lirr.org/dosportaldev/sharing/rest/generateToken?ip=&client=referer&referer=https://dsportal1hsfhqd.lirrad.lirr.org:6443/arcgis/admin&expiration=40000&f=json";
+
+    const credentials = {
+      username: "subwaysgisadmin",
+      password: "9Uvn7WQ_Portal",
+    };
+
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams(credentials),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        token = data.token;
+        console.log(token);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   });
 
   // let token;
@@ -614,6 +636,18 @@ require([
   }
   // add data code
   const fileForm = document.getElementById("mainWindow");
+
+  document.getElementById("uploadForm").addEventListener("change", (event) => {
+    const fileName = event.target.value.toLowerCase();
+
+    if (fileName.indexOf(".zip") !== -1) {
+      //is file a zip - if not notify user
+      generateFeatureCollection(fileName);
+    } else {
+      document.getElementById("upload-status").innerHTML =
+        '<p style="color:red">Add shapefile as .zip file</p>';
+    }
+  });
 
   // code to upload zipped shapefile
 
@@ -1327,7 +1361,7 @@ require([
     // console.log(item.layer);
 
     const layer2 = item.layer;
-    const layerView = item.layerView;
+    // const layerView = item.layerView;
     // console.log(layerView);
     // console.log(layer2);
     const fields = item.layer.fields;
@@ -1338,6 +1372,9 @@ require([
 
     if (item.children.length < 1) {
       const layer = item.layer.url;
+      const layerDefinition = item.layer.definitionExpression;
+      console.log(layerDefinition);
+      console.log(layer);
       const restURL = `${layer}`;
 
       // Create an "About" link
@@ -1363,6 +1400,14 @@ require([
       const filterDiv3 = document.createElement("div");
       filterDiv3.id = "filterDiv";
       filterDiv3.title = "Filter 3";
+
+      const filterButton = document.createElement("div");
+      filterButton.id = "filterButton";
+      filterButton.title = "Reset";
+      // filterButton.id = "filterButton";
+      // filterButton.className = "btn btn-primary";
+      // filterButton.innerHTML = "Filter Reset";
+      // filterButton.scale = "xs";
 
       var combobox1 = document.createElement("calcite-combobox");
       combobox1.id = "combo1";
@@ -1436,6 +1481,16 @@ require([
         combobox1.appendChild(option1);
       });
 
+      var resetViewFilterButton = document.createElement("calcite-button");
+      resetViewFilterButton.id = "resetViewFilterButton";
+      resetViewFilterButton.scale = "s";
+      resetViewFilterButton.textContent = "Reset";
+      resetViewFilterButton.icon = "undo";
+      resetViewFilterButton.label = "Reset";
+      // resetViewFilterButton.classList.add("btn", "btn-clear");
+
+      filterButton.appendChild(resetViewFilterButton);
+
       // Populate combobox2 when a field is selected in combobox1
       combobox1.addEventListener("calciteComboboxChange", async (event) => {
         // Clear current options in combobox2
@@ -1445,7 +1500,7 @@ require([
 
         // Get selected field name
         const fieldName = event.target.selectedItems[0].value;
-        console.log(fieldName);
+        // console.log(fieldName);
 
         // Query unique values of the selected field
         const uniqueValueQuery = layer2.createQuery();
@@ -1475,30 +1530,56 @@ require([
           combobox3.appendChild(option3);
         });
 
-        combobox3.addEventListener("calciteComboboxChange", (event) => {
-          selectedValue3 = event.target.selectedItems[0].value;
-          selectedVal = event.target.selectedItems.map((items) => items.value);
-          selectedValString = selectedVal
-            .map((value) => `'${value}'`)
-            .join(",");
-          console.log(selectedVal);
-          console.log(selectedValString);
-          // console.log(selectedValue3);
-          // selectedValue3Array.push(selectedValue3);
-          layer2.definitionExpression = createdefinitionExpression();
-          // console.log(selectedValue3Array);
+        let currentLayerView;
+
+        view.whenLayerView(layer2).then(function (layerView) {
+          currentLayerView = layerView; // store layerView in layerView1
+          combobox3.addEventListener("calciteComboboxChange", (event) => {
+            selectedValue3 = event.target.selectedItems[0].value;
+            selectedVal = event.target.selectedItems.map(
+              (items) => items.value
+            );
+            selectedValString = selectedVal
+              .map((value) => `'${value}'`)
+              .join(",");
+            // console.log(selectedVal);
+            // console.log(selectedValString);
+            // // console.log(selectedValue3);
+            // // selectedValue3Array.push(selectedValue3);
+
+            currentLayerView.filter = {
+              where: createdefinitionExpression(),
+            };
+            // layer2.definitionExpression = createdefinitionExpression();
+            // console.log(selectedValue3Array);
+          });
+        });
+
+        resetViewFilterButton.addEventListener("click", function () {
+          combobox1.value = "";
+          combobox2.value = "=";
+          combobox3.value = "";
+          // console.log(currentLayerView);
+          if (currentLayerView) {
+            // check if currentLayerView is available
+            currentLayerView.filter = {
+              where: "",
+            };
+          }
+          // console.log(layerView.filter);
+          // console.log(layer2.definitionExpression);
         });
 
         function createdefinitionExpression() {
-          if (selectedValue2 === "=" && selectedVal.length >= 1) {
+          if (selectedValue2 === "=") {
             // console.log(selectedVal[0], selectedVal[1]);
             return `${fieldName} IN (${selectedValString})`;
-          } else {
+          } else if (selectedValue2 === "<>") {
             return `${fieldName} NOT IN (${selectedValString})`;
           }
         }
 
-        console.log(selectedValue3Array);
+        // console.log(selectedValue3Array);
       });
 
       aboutIcon.onclick = function () {
@@ -1522,7 +1603,14 @@ require([
       });
 
       item.panel = {
-        content: [opacityDiv, filterDiv, filterDiv2, filterDiv3, aboutLink],
+        content: [
+          opacityDiv,
+          filterDiv,
+          filterDiv2,
+          filterDiv3,
+          filterButton,
+          aboutLink,
+        ],
         className: "esri-icon-sliders-horizontal",
         title: "Change layer settings",
         label: "Change layer settings",
