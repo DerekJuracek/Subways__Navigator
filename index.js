@@ -1,6 +1,6 @@
 require([
   "esri/config",
-  // "esri/IdentityManager",
+  "esri/identity/IdentityManager",
   "esri/widgets/Expand",
   "esri/widgets/Sketch",
   "esri/WebMap",
@@ -30,7 +30,7 @@ require([
   "esri/widgets/CoordinateConversion",
 ], function (
   esriConfig,
-  // esriId,
+  IdentityManager,
   Expand,
   Sketch,
   WebMap,
@@ -60,17 +60,37 @@ require([
   CoordinateConversion
 ) {
   // const api = esriConfig.apiKey = "AAPK87b9a263a35c4a44809e64bf5f252bce_gAhLbwEuock12F5JkIcuWTTWTz-KkQH4phl4YKRNi9uvwHg-6c4dA_0Q1bQXyqL";
+  // getKey(key => (esriConfig.apiKey = key));
+
+  // document.addEventListener("DOMContentLoaded", () => {
+  //   // This code runs after the document has been fully parsed and loaded.
+
+  //   const url = new URL(window.location.href);
+  //   const params = new URLSearchParams(url.search);
+  //   const token = params.get("token");
+
+  //   if (token) {
+  //     // Use the token here.
+  //     console.log(token);
+  //   } else {
+  //     // The token is not present in the URL.
+  //     console.log("No token found in the URL");
+  //   }
+  // });
 
   esriConfig.portalUrl = "https://mtagisdev.lirr.org/dosportaldev/";
   const webmapId =
     new URLSearchParams(window.location.search).get("webmap") ??
+    // "0e3b0574834749d39ca7f3e7d220e488";
     "a5b26e6f79574142b287d3aeaeee5d50";
 
-  let token = `7VEF4-f9Vj8ARl5BG8Bd2CTlCneqKr1o13On4Itpcj5Q-NkmugErS_W-_0LGvXzSAR3ZeDp-WntTGxpLnWN_JEeNzZIA_F2NYPoRo_HSPYMcqPhVKmURm9shsTRFLRZrl-LDPNU-lawKj1mraedR_KpDzqP0Hz__uEdqJJOeZK5ju0lq50rYRsfer9UswppeUBH8JLmNbed4o_cpSrXl5kc3h5Of_XlE9ny8damIdCo.`;
+  let token = "";
+  let token2 = `7VEF4-f9Vj8ARl5BG8Bd2CTlCneqKr1o13On4Itpcj5Q-NkmugErS_W-_0LGvXzSAR3ZeDp-WntTGxpLnWN_JEeNzZIA_F2NYPoRo_HSPYMcqPhVKmURm9shsTRFLRZrl-LDPNU-lawKj1mraedR_KpDzqP0Hz__uEdqJJOeZK5ju0lq50rYRsfer9UswppeUBH8JLmNbed4o_cpSrXl5kc3h5Of_XlE9ny8damIdCo.`;
 
   const graphicsLayer = new GraphicsLayer();
 
   const portalUrl = esriConfig.portalUrl;
+  const portalUrl2 = `https://mtagisdev.lirr.org/dosportaldev/sharing/`;
 
   const webmap = new WebMap({
     portalItem: {
@@ -78,6 +98,16 @@ require([
     },
     // layers: [graphicsLayer],
   });
+
+  IdentityManager.getCredential(portalUrl2)
+    .then(function (credential) {
+      token = credential.token;
+      console.log("User is signed in: ", credential);
+      // credential object contains the token in credential.token
+    })
+    .catch(function (error) {
+      console.log("User is not signed in: ", error);
+    });
 
   const view = new MapView({
     container: "viewDiv",
@@ -100,8 +130,8 @@ require([
   //     console.log(credential.token); // You can get the token here
   //   });
 
-  const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
-
+  const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token2}`;
+  console.log(token2);
   fetch(folderUrl)
     .then((response) => {
       if (!response.ok) {
@@ -982,6 +1012,7 @@ require([
           }
         })
         .then((jsonData) => {
+          // console.log(token);
           console.log(jsonData);
           const xcoord = jsonData.locations[0].geometry.x;
           console.log(xcoord);
@@ -1283,6 +1314,7 @@ require([
   const layerList = new LayerList({
     view,
     selectionEnabled: true,
+    popupEnabled: true,
     container: "layers-container",
     listItemCreatedFunction: function (event) {
       const item = event.item;
@@ -1310,8 +1342,11 @@ require([
     const layer2 = item.layer;
     // const layerView = item.layerView;
     // console.log(layerView);
-    // console.log(layer2);
+    console.log(layer2);
     const fields = item.layer.fields;
+    if (layer2.title === "StationPlan") {
+      return;
+    }
     // const fields2 = item.layer.fields;
 
     // If you need to see fields for a layer, uncomment the line below
@@ -1550,14 +1585,7 @@ require([
       });
 
       item.panel = {
-        content: [
-          opacityDiv,
-          filterDiv,
-          filterDiv2,
-          filterDiv3,
-          filterButton,
-          aboutLink,
-        ],
+        content: [opacityDiv, aboutLink],
         className: "esri-icon-sliders-horizontal",
         title: "Change layer settings",
         label: "Change layer settings",
@@ -1567,6 +1595,16 @@ require([
         const { value } = event;
         item.layer.opacity = value;
       });
+
+      // Only add filter divs and buttons to the panel if the layer title is not "StationPlan"
+      if (layer2.title !== "StationPlans") {
+        item.panel.content.push(
+          filterDiv,
+          filterDiv2,
+          filterDiv3,
+          filterButton
+        );
+      }
     }
   }
 
@@ -1633,7 +1671,6 @@ require([
 
   const homebutton = new Home({
     view: view,
-    // container: "home-container",
   });
 
   const scaleBar = new ScaleBar({
@@ -1751,7 +1788,10 @@ require([
           .map(function (featureLayer) {
             const defaultSearchFields = featureLayer.fields
               .filter(
-                (field) => field.type === "string" || field.type === "double"
+                (field) =>
+                  field.type === "string" ||
+                  field.type === "double" ||
+                  field.type === "date"
               )
               .map((field) => field.name);
 
@@ -1806,10 +1846,12 @@ require([
         //   searchWidget.activeSource.searchTerm = `%`;
         // });
         searchWidget.sources = featureLayerSources;
+        console.log(featureLayerSources);
       });
     });
   });
 
+  console.log(searchWidget.sources);
   webmap.when(() => {
     const { title, description, thumbnailUrl, avgRating } = webmap.portalItem;
     document.querySelector("#header-title").textContent = title;
