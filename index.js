@@ -1,6 +1,8 @@
 require([
   "esri/config",
+  "esri/identity/OAuthInfo",
   "esri/identity/IdentityManager",
+
   "esri/widgets/Expand",
   "esri/widgets/Sketch",
   "esri/WebMap",
@@ -30,7 +32,9 @@ require([
   "esri/widgets/CoordinateConversion",
 ], function (
   esriConfig,
+  OAuthInfo,
   IdentityManager,
+
   Expand,
   Sketch,
   WebMap,
@@ -99,38 +103,65 @@ require([
     // layers: [graphicsLayer],
   });
 
-  IdentityManager.getCredential(portalUrl2)
-    .then(function (credential) {
-      token = credential.token;
-      console.log("User is signed in: ", credential);
+  let info = new OAuthInfo({
+    appId: "JcGSopI6KXkvnquy",
+    flowType: "authorization-code", //  If using supported server/portal version and a popup, two-step authentication is used.
+    popup: true,
+    popupCallbackUrl: "oauth-callback.html", // make sure to set callback page to one that supports authentication type
+  });
 
-      // Folder fetch operation
-      const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
-      console.log(token);
-      fetch(folderUrl)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.services) {
-            data.services.forEach((service) => {
-              const listItem = createCalciteListItem(service);
-              document
-                .getElementById("featureServiceList")
-                .appendChild(listItem);
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching folder:", error);
-        });
-    })
-    .catch(function (error) {
-      console.log("User is not signed in: ", error);
-    });
+  IdentityManager.registerOAuthInfos([info]);
+  console.log(info);
+
+  // const info = IdentityManager.OAuthInfo({
+  //   appId: "JcGSopI6KXkvnquy", // Provided by ArcGIS when you register your app
+  //   popup: false,
+  // });
+
+  // esri.id.registerOAuthInfos([info]);
+
+  // esri.id
+  //   .checkSignInStatus(info.portalUrl + "/sharing")
+  //   .then(function () {
+  //     console.log("User is signed in");
+  //   })
+  //   .catch(function () {
+  //     // User is not signed in, so redirect to the IdP's sign-in page
+  //     esri.id.getCredential(info.portalUrl + "/sharing");
+  //   });
+
+  // IdentityManager.getCredential(portalUrl2)
+  //   .then(function (credential) {
+  //     token = credential.token;
+  //     console.log("User is signed in: ", credential);
+
+  //     // Folder fetch operation
+  //     const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
+  //     console.log(token);
+  //     fetch(folderUrl)
+  //       .then((response) => {
+  //         if (!response.ok) {
+  //           throw new Error(`HTTP error! Status: ${response.status}`);
+  //         }
+  //         return response.json();
+  //       })
+  //       .then((data) => {
+  //         if (data.services) {
+  //           data.services.forEach((service) => {
+  //             const listItem = createCalciteListItem(service);
+  //             document
+  //               .getElementById("featureServiceList")
+  //               .appendChild(listItem);
+  //           });
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching folder:", error);
+  //       });
+  //   })
+  //   .catch(function (error) {
+  //     console.log("User is not signed in: ", error);
+  //   });
 
   // IdentityManager.getCredential(portalUrl2)
   //   .then(function (credential) {
@@ -1671,6 +1702,9 @@ require([
   });
   const print = new Print({
     view,
+    printServiceUrl:
+      "https://mtagisdev.lirr.org/dosserverdev/rest/services/PrintTemplates/ExportWebMap/GPServer/Export%20Web%20Map",
+    allowedFormats: ["pdf", "jpg", "png"],
     container: "print-container",
   });
 
