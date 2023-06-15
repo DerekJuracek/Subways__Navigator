@@ -769,6 +769,7 @@ require([
         if (!layerExists) {
           Imagerylayer1 = new ImageryLayer({
             url: "https://mtagisdev.lirr.org/dosserverdev/rest/services/StationPlanGeoreferencing/StationPlans/ImageServer",
+            title: "Station Plans",
           });
 
           webmap.add(Imagerylayer1);
@@ -1375,11 +1376,11 @@ require([
     const layer2 = item.layer;
     // const layerView = item.layerView;
     // console.log(layerView);
-    console.log(layer2);
+    // console.log(layer2);
     const fields = item.layer.fields;
-    if (layer2.title === "StationPlan") {
-      return;
-    }
+    // if (layer2.title === "StationPlan") {
+    //   return;
+    // }
     // const fields2 = item.layer.fields;
 
     // If you need to see fields for a layer, uncomment the line below
@@ -1635,7 +1636,7 @@ require([
       });
 
       item.panel = {
-        content: [opacityDiv, aboutLink],
+        content: [opacityDiv],
         className: "esri-icon-sliders-horizontal",
         title: "Change layer settings",
         label: "Change layer settings",
@@ -1647,13 +1648,14 @@ require([
       });
 
       // Only add filter divs and buttons to the panel if the layer title is not "StationPlan"
-      if (layer2.title !== "StationPlans") {
+      if (layer2.title !== "Station Plans") {
         item.panel.content.push(
           filterLabel,
           filterDiv,
           filterDiv2,
           filterDiv3,
-          filterButton
+          filterButton,
+          aboutLink
         );
       }
     }
