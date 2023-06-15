@@ -22,6 +22,7 @@ require([
   "esri/widgets/Legend",
   "esri/widgets/Print",
   "esri/widgets/Search",
+  // "esri/tasks/Locator",
   "esri/widgets/Home",
   "esri/widgets/DistanceMeasurement2D",
   "esri/widgets/AreaMeasurement2D",
@@ -52,6 +53,7 @@ require([
   Legend,
   Print,
   Search,
+  // Locator,
   Home,
   DistanceMeasurement2D,
   AreaMeasurement2D,
@@ -1632,7 +1634,7 @@ require([
     view: view,
     locationEnabled: false,
     searchAllEnabled: true,
-    includeDefaultSources: true,
+    includeDefaultSources: false,
     suggestionsEnabled: true,
     exactMatch: false,
     maxSuggestions: 6,
@@ -1840,13 +1842,19 @@ require([
             searchQuery = event.searchTerm;
           }
         });
+        // Geocoder
+        const geocoder = {
+          url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
+          name: "Esri World Geocoder",
+        };
 
         // // Add event listener for search-clear event
         // searchWidget.on("search-clear", function () {
         //   searchWidget.activeSource.searchTerm = `%`;
         // });
         searchWidget.sources = featureLayerSources;
-        console.log(featureLayerSources);
+        searchWidget.sources.push(geocoder);
+        // console.log(featureLayerSources);
       });
     });
   });
