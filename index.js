@@ -22,7 +22,6 @@ require([
   "esri/widgets/Legend",
   "esri/widgets/Print",
   "esri/widgets/Search",
-  // "esri/tasks/Locator",
   "esri/widgets/Home",
   "esri/widgets/DistanceMeasurement2D",
   "esri/widgets/AreaMeasurement2D",
@@ -53,7 +52,6 @@ require([
   Legend,
   Print,
   Search,
-  // Locator,
   Home,
   DistanceMeasurement2D,
   AreaMeasurement2D,
@@ -105,11 +103,44 @@ require([
     .then(function (credential) {
       token = credential.token;
       console.log("User is signed in: ", credential);
-      // credential object contains the token in credential.token
+
+      // Folder fetch operation
+      const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token}`;
+      console.log(token);
+      fetch(folderUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.services) {
+            data.services.forEach((service) => {
+              const listItem = createCalciteListItem(service);
+              document
+                .getElementById("featureServiceList")
+                .appendChild(listItem);
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching folder:", error);
+        });
     })
     .catch(function (error) {
       console.log("User is not signed in: ", error);
     });
+
+  // IdentityManager.getCredential(portalUrl2)
+  //   .then(function (credential) {
+  //     token = credential.token;
+  //     console.log("User is signed in: ", credential);
+  //     // credential object contains the token in credential.token
+  //   })
+  //   .catch(function (error) {
+  //     console.log("User is not signed in: ", error);
+  //   });
 
   const view = new MapView({
     container: "viewDiv",
@@ -132,29 +163,29 @@ require([
   //     console.log(credential.token); // You can get the token here
   //   });
 
-  const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token2}`;
-  console.log(token2);
-  fetch(folderUrl)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      // console.log("Folder data:", data);
+  // const folderUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/EAMPRD_EQUIPMENT?f=json&token=${token2}`;
+  // console.log(token2);
+  // fetch(folderUrl)
+  //   .then((response) => {
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! Status: ${response.status}`);
+  //     }
+  //     return response.json();
+  //   })
+  //   .then((data) => {
+  //     // console.log("Folder data:", data);
 
-      if (data.services) {
-        data.services.forEach((service) => {
-          const listItem = createCalciteListItem(service);
-          document.getElementById("featureServiceList").appendChild(listItem);
-          // console.log("Feature service:", service);
-        });
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching folder:", error);
-    });
+  //     if (data.services) {
+  //       data.services.forEach((service) => {
+  //         const listItem = createCalciteListItem(service);
+  //         document.getElementById("featureServiceList").appendChild(listItem);
+  //         // console.log("Feature service:", service);
+  //       });
+  //     }
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error fetching folder:", error);
+  //   });
 
   function createCalciteListItem(service) {
     // console.log(service.name);
@@ -188,7 +219,7 @@ require([
 
     // Add event listener to calcite-action
     action.addEventListener("click", function () {
-      console.log("add data button clicked for", service.name);
+      // console.log("add data button clicked for", service.name);
       if (service.layer) {
         // Remove the layer
         webmap.remove(service.layer);
@@ -1372,6 +1403,10 @@ require([
       aboutIcon.className = "esri-icon-description custom-action-icon";
       aboutLink.appendChild(aboutIcon);
 
+      const filterLabel = document.createElement("div");
+      filterLabel.id = "filterLabel";
+      filterLabel.title = "Filter";
+
       // div to hold new definition expression
       const filterDiv = document.createElement("div");
       filterDiv.id = "filterDiv";
@@ -1384,6 +1419,19 @@ require([
       const filterDiv3 = document.createElement("div");
       filterDiv3.id = "filterDiv";
       filterDiv3.title = "Filter 3";
+
+      const Label = document.createElement("calcite-label");
+      Label.id = "filterLabel";
+      Label.title = "Filter";
+      Label.innerHTML = "Filter";
+
+      // const hrLabel = document.createElement("hr");
+      // hrLabel.id = "hrLabel";
+      // hrLabel.title = "Filter";
+
+      // Label.appendChild(hrLabel);
+
+      filterLabel.appendChild(Label);
 
       const filterButton = document.createElement("div");
       filterButton.id = "filterButton";
@@ -1601,6 +1649,7 @@ require([
       // Only add filter divs and buttons to the panel if the layer title is not "StationPlan"
       if (layer2.title !== "StationPlans") {
         item.panel.content.push(
+          filterLabel,
           filterDiv,
           filterDiv2,
           filterDiv3,
@@ -1846,6 +1895,7 @@ require([
         const geocoder = {
           url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer",
           name: "Esri World Geocoder",
+          placeholder: "Search by Address or Location",
         };
 
         // // Add event listener for search-clear event
