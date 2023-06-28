@@ -1,0 +1,17 @@
+{
+  "appId": "H0b77ZnuFxyPT50n",
+  "credentialPortalURL": "https://gistest.mta.info/portal//sharing/rest",
+  "webmapId": "13b3a6b718ac4fb39b4036b7a261a971",
+  "portalURL": "https://gistest.mta.info/portal/",
+  "portalFolderURL": "https://gistest.mta.info/portal/sharing/",
+  "portalURLEquipment": "https://gistest.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT",
+  "stationPlansURL": "https://gistest.mta.info/agencies/rest/services/DOS_StationPlanGeoreferencing/StationPlans/ImageServer",
+  "trackLrsURL": "https://mtagistest.lirr.org/dosservertest/rest/services/Track/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/3",
+  "sirLrsURL": "https://mtagistest.lirr.org/dosservertest/rest/services/Track/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/3",
+  "printURL": "https://gistest.mta.info/agencies/rest/services/DOS_PrintTemplates/DS_PRINT_SERVICE/GPServer/Export%20Web%20Map",
+  "title": "Subways Navigator, TEST",
+  "cssHeaderBackground": "#008bed",
+  "cssViewBackground": "#f5f5f5",
+  "cssLayerFilterColor": "#f5f5f5",
+  "cssLayerFilterTextColor": "#474747"
+}

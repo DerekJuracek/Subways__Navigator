@@ -324,11 +324,12 @@ calcite-notice {
 
 #attributeBar {
   position: absolute;
-  left: 196px;
+  /* left: 44px; */
   bottom: 0;
   height: 0px;
   background: white;
-  width: calc(100% - 198px);
+  width: 100%;
+  /* width: calc(100% - 198px); */
   color: black;
 }
 
