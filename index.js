@@ -71,8 +71,8 @@ require([
       esriConfig.portalUrl = config.portalURL;
       esriConfig.request.trustedServers.push(config.portalURL);
 
-      const width = 800; // Width of the popup window
-      const height = 600; // Height of the popup window
+      const width = 700; // Width of the popup window
+      const height = 500; // Height of the popup window
       const left = screen.width / 2 - width / 2; // Center horizontally
       const top = screen.height / 2 - height / 2;
 
@@ -90,12 +90,9 @@ require([
       IdentityManager.registerOAuthInfos([info]);
       IdentityManager.getCredential(`${esriConfig.portalUrl}/sharing/rest`)
         .then((credential) => {
-          // console.log("User is signed in.");
-          // console.log(credential.token);
           runApp(credential.token, config);
         })
         .catch((error) => {
-          // console.log("User is not signed in.");
           runApp(null, config);
         });
     })
@@ -132,14 +129,11 @@ require([
       },
     });
 
-    // console.log(token);
     IdentityManager.getCredential(portalUrl2)
       .then(function (credential) {
         token = credential.token;
-        console.log("User is signed in: ", credential);
         // Folder fetch operation
         const folderUrl = `${portalEquipmentUrl}?f=json&token=${token}`;
-        console.log(token);
         fetch(folderUrl)
           .then((response) => {
             if (!response.ok) {
@@ -166,18 +160,12 @@ require([
       });
 
     function createCalciteListItem(service) {
-      // console.log(service.name);
       const listItem = document.createElement("calcite-list-item");
-      // listItem.display.style.width = "250px";
       itemsName = service.name.split("/")[1];
       let thumbnail = `images/${itemsName}.png`;
-      // console.log(thumbnail);
       itemsLabel = itemsName.replaceAll("_", " ");
       listItem.style.fontWeight = "bold";
       listItem.label = itemsLabel;
-
-      // let thumbnailUrl = `https://mtagisdev.lirr.org/dosserverdev/rest/services/${service.name}/MapServer/info/thumbnail`;
-      // console.log(thumbnailUrl);
 
       // Create an img element to hold the thumbnail
       thumbnailImage = document.createElement("img");
@@ -195,7 +183,6 @@ require([
 
       // Add event listener to add-data list
       action.addEventListener("click", function () {
-        // console.log("add data button clicked for", service.name);
         if (service.layer) {
           // Remove the layer
           webmap.remove(service.layer);
@@ -220,12 +207,11 @@ require([
         defaultPopupTemplateEnabled: true,
         popupEnabled: true,
       });
-      console.log(service.layer);
-
       // Add the layer to the webmap
       webmap.add(service.layer);
     }
 
+    // Function to query and zoom to the feature based on the query parameters
     function getQueryParams() {
       const queryParams = {};
       const queryString = window.location.search.substring(1);
@@ -239,61 +225,55 @@ require([
       return queryParams;
     }
 
-    // Function to query and zoom to the feature
     async function queryAndZoom(layerName, fieldName, fieldValue) {
       const layer = view.map.allLayers.find(
         (layer) => layer.title === layerName
       );
 
-      if (layer) {
-        // layer.spatialReference = 3857;
-        console.log(layer);
+      // Await the layer view to access geometryType property
+      await layer.when();
+      if (layer.geometryType === "point") {
         const query = layer.createQuery();
-        console.log(query);
-        // query.inspatialReference = 3857;
-        // query.outspatialReference = 3857;
         query.where = `${fieldName} = '${fieldValue}'`;
 
         const results = await layer.queryFeatures(query);
-        console.log(results);
 
         if (results.features.length > 0) {
           const feature = results.features[0];
-          // feature.geometry.spatialReference = 3857;
-          // console.log(feature);
-          const cs1 = { wkid: 4272 };
 
-          const cs2 = { wkid: 4167 };
-
-          // const extent = new Extent({
-          //   xmin: -186.0,
-          //   ymin: -42.0,
-          //   xmax: -179.0,
-          //   ymax: -38.0
-          // });
-
-          const geogtrans = projection.getTransformations(cs1, cs2);
-          geogtrans.forEach(function (geogtran, index) {
-            geogtran.steps.forEach(function (step, index) {
-              console.log("step wkid: ", step.wkid);
-            });
+          view.goTo({
+            center: feature,
+            scale: 20,
+            zoom: 20,
+            // Set the desired zoom level
           });
-          // feature.geometry.spatialReference.isWebMercator = true;
-          // lat = feature.geometry.lat;
-          // long = feature.geometry.long;
-          // console.log(latLng);
 
-          // const latlong = [
-          //   feature.geometry.longitude,
-          //   feature.geometry.latitude,
-          // ];
-          view.goTo(feature);
-          console.log(feature);
-        } else {
-          console.log("No features found with the provided query parameters");
+          const layerView = await view.whenLayerView(layer);
+          layerView.highlight(feature);
+          layerView.highlightOptions = {
+            haloOpacity: 0.9,
+            fillOpacity: 0,
+          };
         }
+        // will zoom to polygons and polylines
       } else {
-        console.log("Layer not found");
+        const query = layer.createQuery();
+        query.where = `${fieldName} = '${fieldValue}'`;
+
+        const results = await layer.queryFeatures(query);
+
+        if (results.features.length > 0) {
+          const feature = results.features[0];
+
+          view.goTo(feature);
+
+          const layerView = await view.whenLayerView(layer);
+          layerView.highlight(feature);
+          layerView.highlightOptions = {
+            haloOpacity: 0.9,
+            fillOpacity: 0,
+          };
+        }
       }
     }
 
@@ -306,7 +286,8 @@ require([
       }
     });
 
-    // console.log(view);
+    // Logic for the "share URL" and to capture it's current extent
+    // Fires when the share button is clicked
     const shareAction = document.getElementById("shareAction");
 
     shareAction.addEventListener("click", function () {
@@ -314,23 +295,17 @@ require([
       let anchor = shareURL.querySelector("a");
       // Access the href attribute of the <a> element
       let hrefValue = anchor.getAttribute("href");
-      // console.log("Current href value:", hrefValue);
       let currentState = view.state.extent;
       let min = [currentState.xmin, currentState.ymin];
       let max = [currentState.xmax, currentState.ymax];
-      // console.log(shareURL);
-      // console.log(currentState);
-      // console.log(min);
-      // console.log(max);
 
       let newHrefValue = `https://gis.mta.info/portal/apps/webappviewer/index.html?id=71c72cd11c5b4b988d38297857e84260&extent=${min}%2C${max}%2C102100`;
       anchor.setAttribute("href", newHrefValue);
       anchor.textContent = newHrefValue;
-
-      console.log(anchor);
     });
 
-    const collapseButton = document.getElementById("collapseButton");
+    // Logic to add dynamic styling to attribute table in reference to the action bar
+    // Changes the padding and width of the attribute table when the action bar is expanded or collapsed
 
     function updateLayout() {
       let actionBar = document.querySelector("calcite-action-bar");
@@ -368,21 +343,21 @@ require([
         updateLayout();
       });
 
+    // Adds CSV button only when the Attribute Table is created and visible
+    // Exports the Attribute Table to a CSV file
+
     const exportCSVButton = document.getElementById("exportBtn");
     view.ui.add(exportCSVButton, "bottom-right");
 
     let featureTable;
     let layer;
 
-    async function customAction(event) {
+    async function createAttributeTable(event) {
       // Handle custom action click event
-      // console.log("Custom action clicked:", event);
       layer = event.item.layer;
 
       const container = document.getElementById("attributeBar");
-      console.log(featureTable);
 
-      // view.padding = { bottom: 0 };
       if (!featureTable) {
         exportCSVButton.style.display = "block";
         const tableContainer = document.createElement("div");
@@ -426,7 +401,6 @@ require([
             // Otherwise export all features
             layer.queryFeatures().then(function (results) {
               featuresToExport = results.features;
-              console.log(featuresToExport);
 
               // Continue with exporting
               exportToCSV(featuresToExport);
@@ -447,8 +421,6 @@ require([
               (fieldName) => feature.attributes[fieldName]
             );
             csvContent += row.join(",") + "\r\n";
-            // const row = Object.values(feature.attributes).join(",");
-            // csvContent += row + "\r\n";
           });
 
           const blob = new Blob([csvContent], { type: "text/csv" });
@@ -460,7 +432,6 @@ require([
           link.click();
 
           URL.revokeObjectURL(url);
-          console.log(`CSV has been exported`);
         }
 
         // When a feature is selected or deselected
@@ -471,13 +442,8 @@ require([
             .filter((id) => !event.removed.includes(id));
         });
 
-        console.log(featureTable);
-
         featureTable.highlightIds.on("change", (event) => {
           let fieldnames = featureTable.columns.items;
-          // console.log(featureTable.viewModel);
-          // console.log("features selected", event.added);
-          // console.log("features deselected", event.removed);
         });
 
         view.on("immediate-click", (event) => {
@@ -546,13 +512,9 @@ require([
         console.error("No feature layer found in the map");
         return;
       }
-
-      const featureButton = document.getElementById("collapseButton");
-
-      view.ui.add(featureButton, "bottom-right");
     });
 
-    // code to hold sketch and expand widget
+    // Logic for sketch and expand widget
     view.when(() => {
       const sketch = new Sketch({
         layer: graphicsLayer,
@@ -571,6 +533,8 @@ require([
 
       view.ui.add(sketchExpand, "top-left");
     });
+
+    // Logic for URL inputs, csv and .shp file upload
 
     let urlInput = document.getElementById("urlInput");
     let urlButton = document.getElementById("urlButton");
@@ -639,8 +603,6 @@ require([
       document.getElementById("upload-status").innerHTML =
         "<b>Loading </b>" + name;
 
-      // define the input params for generate see the rest doc for details
-      // https://developers.arcgis.com/rest/users-groups-and-items/generate.htm
       const params = {
         name: name,
         targetSR: view.spatialReference,
@@ -719,7 +681,7 @@ require([
 
     const filterAction = document.getElementById("filter");
 
-    let Imagerylayer1;
+    let stationPlansLayer;
 
     webmap.when(function () {
       // Only add the event listener if "Station Plans" layer is not visible
@@ -734,12 +696,12 @@ require([
           });
 
           if (!layerExists) {
-            Imagerylayer1 = new ImageryLayer({
+            stationPlansLayer = new ImageryLayer({
               url: `${stationPlansURL}`,
               title: "Station Plans",
             });
 
-            webmap.add(Imagerylayer1);
+            webmap.add(stationPlansLayer);
           }
         }
       });
@@ -750,14 +712,11 @@ require([
       const url = `${stationPlansURL}/query?where=Division+%3D+%27${divison}%27&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=102100&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=StationName&returnGeometry=false&outSR=102100&returnIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&pixelSize=&rasterQuery=&orderByFields=StationName&groupByFieldsForStatistics=&outStatistics=&returnDistinctValues=true&multidimensionalDefinition=&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&resultOffset=0&resultRecordCount=1000&f=json&token=${token}`;
       const response = await fetch(url);
       const data = await response.json();
-      console.log(data);
       const dropdownGroup2 = document.querySelector("#Filter2");
-      // const dropdownGroup3 = document.querySelector("#Filter3");
       dropdownGroup2.innerHTML = "";
 
       data.features.forEach((item) => {
         let dropdownItem = document.createElement("calcite-dropdown-item");
-
         const itemID = (dropdownItem.id = item.attributes.StationName);
         const label = (dropdownItem.value = item.attributes.StationName);
         const value = (dropdownItem.textContent = item.attributes.StationName);
@@ -765,26 +724,20 @@ require([
         dropdownGroup2.appendChild(dropdownItem);
 
         dropdownItem.addEventListener("click", (event) => {
-          // console.log("Clicked dropdown item:", event.target);
           const stationName = event.target.id;
           let stationName2 = stationName.toUpperCase();
           populateDropdownItems2(division, stationName);
-          console.log(division, stationName);
-          updateMosaicRule(Imagerylayer1, division, stationName2);
-
-          // Do something when the dropdown item is clicked
+          updateMosaicRule(stationPlansLayer, division, stationName2);
         });
       });
     }
     // Feature calcite-filter populate, event listener and runs updateMosaicRule callback
 
     async function populateDropdownItems2(division, stationName) {
-      // let division2 = division2.toUpperCase();
       let stationName1 = stationName.toUpperCase();
       const url = `${stationPlansURL}/query?f=json&where=(((UPPER(Division)%20%3D%20%27${division}%27)%20AND%20(UPPER(StationName)%20%3D%20%27${stationName1}%27)))&returnGeometry=true&returnFields=*&outFields=*&spatialRel=esriSpatialRelIntersects&outSR=102100&token=${token}`;
       const response = await fetch(url);
       const data = await response.json();
-      console.log(data);
       const dropdownGroup3 = document.querySelector("#Filter3");
 
       data.features.forEach((item) => {
@@ -793,18 +746,13 @@ require([
         const itemID2 = (dropdownItem2.id = item.attributes.Feature);
         const label2 = (dropdownItem2.value = item.attributes.Feature);
         const value2 = (dropdownItem2.textContent = item.attributes.Feature);
-        // need to find a way to get this id out and into the function updateMosaicRule
-        // Add an event listener to the dropdownItem
 
         dropdownGroup3.appendChild(dropdownItem2);
 
         dropdownItem2.addEventListener("click", (event) => {
-          // console.log("Clicked dropdown item:", event.target);
           const feature = event.target.id;
           const feature2 = feature.toUpperCase();
-          console.log(feature);
-          updateMosaicRule(Imagerylayer1, division, stationName1, feature2);
-          // Do something when the dropdown item is clicked
+          updateMosaicRule(stationPlansLayer, division, stationName1, feature2);
         });
       });
     }
@@ -856,7 +804,6 @@ require([
           ascending: true,
           mosaicOperation: "MT_FIRST",
         };
-        console.log(`first mosaicRule Ran?`);
       } else if (
         division !== undefined &&
         stationName !== undefined &&
@@ -870,10 +817,6 @@ require([
           ascending: true,
           mosaicOperation: "MT_FIRST",
         };
-
-        console.log(layer.mosaicRule);
-        console.log(`second mosaicRule Ran!`);
-
         // Query the layer and zoom to the extent
         queryLayerExtent(layer, where)
           .then((extent) => {
@@ -891,27 +834,44 @@ require([
           ascending: true,
           mosaicOperation: "MT_FIRST",
         };
-        console.log(`third mosaicRule Ran...`);
-        console.log(layer.mosaicRule);
       }
       updataFilterContainer(division, stationName, feature);
     }
 
     // Add event listeners to the buttons
     filter1Option1.addEventListener("click", () => {
-      updateMosaicRule(Imagerylayer1, "BMT");
+      updateMosaicRule(stationPlansLayer, "BMT");
       populateDropdownItems("BMT");
     });
 
     filter1Option2.addEventListener("click", () => {
-      updateMosaicRule(Imagerylayer1, "IND");
+      updateMosaicRule(stationPlansLayer, "IND");
       populateDropdownItems("IND");
     });
 
     filter1Option3.addEventListener("click", () => {
-      updateMosaicRule(Imagerylayer1, "IRT");
+      updateMosaicRule(stationPlansLayer, "IRT");
       populateDropdownItems("IRT");
     });
+
+    let originalExtent;
+
+    view.when(function () {
+      originalExtent = view.extent.clone();
+    });
+
+    function resetFilterAndZoom() {
+      // Reset the filter by setting the mosaic rule to null
+      stationPlansLayer.mosaicRule = null;
+      const filterInputs = document.getElementById("filterInputs");
+      filterInputs.innerHTML = null;
+
+      // Zoom back out to the original extent
+      view.goTo({ target: originalExtent });
+    }
+
+    // Logic for Custom LRS Tool
+    // User must click on SIR or Track button to enable correct LRS endpoint
 
     const sirButton = document.querySelector("#sir");
     const trackButton = document.querySelector("#track");
@@ -920,39 +880,17 @@ require([
 
     sirButton.addEventListener("click", (event) => {
       lastClickedButtonId = event.target.id;
-      // console.log(button1id);
     });
 
     trackButton.addEventListener("click", (event) => {
       lastClickedButtonId = event.target.id;
-      // console.log(locatorButton2.label);
     });
-
-    let originalExtent;
-
-    view.when(function () {
-      originalExtent = view.extent.clone();
-      // ... other code ...
-    });
-
-    function resetFilterAndZoom() {
-      // Reset the filter by setting the mosaic rule to null
-      Imagerylayer1.mosaicRule = null;
-      const filterInputs = document.getElementById("filterInputs");
-      filterInputs.innerHTML = null;
-
-      // Zoom back out to the original extent
-      view.goTo({ target: originalExtent });
-    }
 
     const filterButton = document.getElementById("removeFilter");
     filterButton.addEventListener("click", () => {
       resetFilterAndZoom();
     });
 
-    // trackButton.addEventListener("click", () => {
-    //   console.log(trackButton.id);
-    // });
     function updateInfoContainer(buttonPressed, input1, input2) {
       const infoContainer = document.getElementById("info-container");
       const upperButton = buttonPressed.toUpperCase();
@@ -986,10 +924,6 @@ require([
 
     form1.addEventListener("submit", function (event) {
       event.preventDefault();
-      // console.log(event);
-      // console.log("Form 1 submitted");
-      // const Buttons = [locatorButton.label, locatorButton2.label];
-      // const trackButton = locatorButton2.label;
       // prevent form from submitting normally
       const inputValue1 = input1.value;
       const inputValue2 = input2.value;
@@ -1013,12 +947,8 @@ require([
             }
           })
           .then((jsonData) => {
-            // console.log(token);
-            console.log(jsonData);
             const xcoord = jsonData.locations[0].geometry.x;
-            console.log(xcoord);
             const ycoord = jsonData.locations[0].geometry.y;
-            console.log(ycoord);
 
             const point = {
               type: "point",
@@ -1066,11 +996,8 @@ require([
             }
           })
           .then((jsonData) => {
-            console.log(jsonData);
             const xcoord = jsonData.locations[0].geometry.x;
-            console.log(xcoord);
             const ycoord = jsonData.locations[0].geometry.y;
-            console.log(ycoord);
 
             const point = {
               type: "point",
@@ -1110,8 +1037,6 @@ require([
 
     form2.addEventListener("submit", function (event) {
       event.preventDefault(); // prevent form from submitting normally
-      // console.log("Form 2 submitted");
-
       const inputValue3 = input3.value;
       const inputValue4 = input4.value;
       const inputValue5 = input5.value;
@@ -1141,8 +1066,6 @@ require([
             }
           })
           .then((jsonData) => {
-            console.log(jsonData);
-
             // Extract the paths from the API response
             const paths = jsonData.locations[0].geometry.paths;
 
@@ -1199,8 +1122,6 @@ require([
             }
           })
           .then((jsonData) => {
-            console.log(jsonData);
-
             // Extract the paths from the API response
             const paths = jsonData.locations[0].geometry.paths;
 
@@ -1254,12 +1175,16 @@ require([
       infoContainer.innerHTML = "";
     });
 
+    // Logic for custom BasemapLayerList widget
+    // When user selects another basemap to be visible, turn off all other basemaps
+    // cannot have two basemaps on at once
+    // Current issues with basemaps in test, add correct basemaps to webmap
+
     const basemaps = new BasemapLayerList({
       view,
       container: "basemaps-container",
       basemapTitle: "",
     });
-    // console.log(basemaps);
 
     basemaps.visibleElements = {
       baseHeading: false,
@@ -1270,8 +1195,6 @@ require([
       referenceLayersTitle: false,
       errors: true,
     };
-
-    // console.log(basemaps.visibleElements);
 
     view.when().then(() => {
       // Get base layer titles dynamically
@@ -1314,6 +1237,8 @@ require([
       });
     }
 
+    // Look for
+
     const bookmarks = new Bookmarks({
       view,
       container: "bookmarks-container",
@@ -1328,7 +1253,6 @@ require([
       container: "layers-container",
       listItemCreatedFunction: function (event) {
         const item = event.item;
-        // console.log(item);
 
         item.actionsSections = [
           [
@@ -1340,33 +1264,19 @@ require([
             },
           ],
         ];
-        createOpacitySlider(item);
+        createLayerListActions(item);
       },
     });
 
-    async function createOpacitySlider(item) {
+    async function createLayerListActions(item) {
       await item.layer.when();
-      // console.log(item);
-      // console.log(item.layer);
 
       const layer2 = item.layer;
-      // const layerView = item.layerView;
-      // console.log(layerView);
-      // console.log(layer2);
       const fields = item.layer.fields;
-      // if (layer2.title === "StationPlan") {
-      //   return;
-      // }
-      // const fields2 = item.layer.fields;
-
-      // If you need to see fields for a layer, uncomment the line below
-      // console.log(fields);
 
       if (item.children.length < 1) {
         const layer = item.layer.url;
         const layerDefinition = item.layer.definitionExpression;
-        // console.log(layerDefinition);
-        // console.log(layer);
         const restURL = `${layer}`;
 
         // Create an "About" link
@@ -1402,21 +1312,11 @@ require([
         Label.title = "Filter";
         Label.innerHTML = "Filter";
 
-        // const hrLabel = document.createElement("hr");
-        // hrLabel.id = "hrLabel";
-        // hrLabel.title = "Filter";
-
-        // Label.appendChild(hrLabel);
-
         filterLabel.appendChild(Label);
 
         const filterButton = document.createElement("div");
         filterButton.id = "filterButton";
         filterButton.title = "Reset";
-        // filterButton.id = "filterButton";
-        // filterButton.className = "btn btn-primary";
-        // filterButton.innerHTML = "Filter Reset";
-        // filterButton.scale = "xs";
 
         var combobox1 = document.createElement("calcite-combobox");
         combobox1.id = "combo1";
@@ -1439,14 +1339,12 @@ require([
         var labelsAndValues = [
           { label: "is", value: "=" },
           { label: "is not", value: "<>" },
-          // { label: "contains", value: "LIKE" },
         ];
 
         // Create a calcite-combobox-item for each label and value
         labelsAndValues.forEach((item) => {
           var option = document.createElement("calcite-combobox-item");
           option.setAttribute("scale", "xs");
-          // option.scale = "xs";
           option.value = item.value;
           option.textLabel = item.label;
           combobox2.appendChild(option);
@@ -1457,16 +1355,9 @@ require([
         let selectedValue2 = "=";
         let selected3Array = [];
 
-        // let defaultSelectedValue2;
-
         combobox2.addEventListener("calciteComboboxItemChange", (event) => {
-          // defaultSelectedValue2 = "=";
-
           selectedValue2 = event.target.value;
-          console.log(selectedValue2);
-          console.log(combobox2);
           selected3Array.push(selectedValue2);
-          console.log(selected3Array);
         });
         // filterDiv2.appendChild(combobox2);
 
@@ -1485,7 +1376,6 @@ require([
           option1.setAttribute("scale", "xs");
           option1.value = field.name;
           option1.textLabel = field.alias;
-
           // Append each option to the combobox right away
           combobox1.appendChild(option1);
         });
@@ -1509,7 +1399,6 @@ require([
 
           // Get selected field name
           const fieldName = event.target.selectedItems[0].value;
-          // console.log(fieldName);
 
           // Query unique values of the selected field
           const uniqueValueQuery = layer2.createQuery();
@@ -1524,16 +1413,11 @@ require([
           let selectedValue3Array = [];
           let selectedVal;
           let selectedValString;
-          console.log(selectedValue3Array);
 
           // Create and append a new option for each unique value
           results.features.forEach((feature) => {
             const uniqueValue = feature.attributes[fieldName];
-            console.log(feature.attributes);
-
-            console.log("uniqueValue:", uniqueValue);
             const option3 = document.createElement("calcite-combobox-item");
-            // option3.scale = "xs";
             option3.value = uniqueValue;
             option3.textLabel = uniqueValue;
             combobox3.appendChild(option3);
@@ -1551,16 +1435,10 @@ require([
               selectedValString = selectedVal
                 .map((value) => `'${value}'`)
                 .join(",");
-              // console.log(selectedVal);
-              // console.log(selectedValString);
-              // // console.log(selectedValue3);
-              // // selectedValue3Array.push(selectedValue3);
 
               currentLayerView.filter = {
                 where: createdefinitionExpression(),
               };
-              // layer2.definitionExpression = createdefinitionExpression();
-              // console.log(selectedValue3Array);
             });
           });
 
@@ -1568,27 +1446,21 @@ require([
             combobox1.value = "";
             combobox2.value = "=";
             combobox3.value = "";
-            // console.log(currentLayerView);
             if (currentLayerView) {
               // check if currentLayerView is available
               currentLayerView.filter = {
                 where: "",
               };
             }
-            // console.log(layerView.filter);
-            // console.log(layer2.definitionExpression);
           });
 
           function createdefinitionExpression() {
             if (selectedValue2 === "=") {
-              // console.log(selectedVal[0], selectedVal[1]);
               return `${fieldName} IN (${selectedValString})`;
             } else if (selectedValue2 === "<>") {
               return `${fieldName} NOT IN (${selectedValString})`;
             }
           }
-
-          // console.log(selectedValue3Array);
         });
 
         aboutIcon.onclick = function () {
@@ -1637,20 +1509,8 @@ require([
       }
     }
 
-    layerList.on("trigger-action", createOpacitySlider);
-    layerList.on("trigger-action", customAction);
-    // layerList.addEventListener("click", customAction);
-
-    const legend = new Legend({
-      view,
-      container: "legend-container",
-    });
-    const print = new Print({
-      view,
-      printServiceUrl: `${printURL}`,
-      allowedFormats: ["pdf", "jpg", "png"],
-      container: "print-container",
-    });
+    layerList.on("trigger-action", createLayerListActions);
+    layerList.on("trigger-action", createAttributeTable);
 
     // Create a new div element for the Search widget container and its configuration
     const searchWidgetContainer = document.createElement("div");
@@ -1696,13 +1556,38 @@ require([
       headerTitle.insertBefore(img, h2);
     });
 
+    // add legend widget to container
+    // legend-container is referenced in the index.html file
+    const legend = new Legend({
+      view,
+      container: "legend-container",
+    });
+
+    // add print widget to container
+    // print-container is referenced in the index.html file
+    const print = new Print({
+      view,
+      printServiceUrl: `${printURL}`,
+      allowedFormats: ["pdf", "jpg", "png"],
+      container: "print-container",
+    });
+
+    // adding locate button
+    // added directly to the view
+
     const locateBtn = new Locate({
       view: view,
     });
 
+    // add home button
+    // added directly to the view
+
     const homebutton = new Home({
       view: view,
     });
+
+    // add scalebar
+    // added directly to the view
 
     const scaleBar = new ScaleBar({
       view: view,
@@ -1710,6 +1595,8 @@ require([
       style: "ruler",
     });
 
+    // add coordinate conversion widget
+    // added directly to the view
     const ccWidget = new CoordinateConversion({
       view: view,
       headingLevel: 5,
@@ -1720,6 +1607,8 @@ require([
     view.ui.add(homebutton, {
       position: "top-left",
     });
+
+    // if you change the order of these, they will be referenced in different order of the view
 
     view.ui.move("zoom", "top-left");
     // Add the locate widget to the top left corner of the view
@@ -1732,6 +1621,8 @@ require([
 
     // add the toolbar for the measurement widgets
     view.ui.add("topbar", "top-right");
+
+    // logic for distance and area measurement widgets
     let activeWidget1 = null;
 
     document
@@ -1808,10 +1699,7 @@ require([
       webmap.load().then(function () {
         // Wait for all layers to be loaded
         let layersLoaded = webmap.layers.map((layer) => layer.load());
-        // console.log(layersLoaded);
-        // layersLoaded.reverse();
 
-        // console.log(layersLoaded);
         Promise.all(layersLoaded).then(() => {
           const reversedLayers = webmap.layers.slice().reverse();
           const featureLayerSources = reversedLayers
@@ -1848,21 +1736,14 @@ require([
                 outFields: ["*"],
                 name: featureLayer.title,
                 placeholder: "Search " + featureLayer.title,
-                // minSuggestCharacters: 3,
+                minSuggestCharacters: 3,
                 maxSuggestions: 6,
                 maxResults: 6,
                 searchAllEnabled: true,
                 suggestionsEnabled: true,
-
-                // exactMatch: false,
               };
             });
-          // Add event listener for search-focus event
-          // searchWidget.on("suggest-start", function (event) {
-          //   const changeSearch = `%${event.searchTerm}`;
-          //   console.log(changeSearch);
-          //   searchWidget.searchTerm = `%${event.searchTerm}`;
-          // });
+
           let searchQuery = "";
 
           searchWidget.on("suggest-start", function (event) {
@@ -1880,18 +1761,12 @@ require([
             placeholder: "Search by Address or Location",
           };
 
-          // // Add event listener for search-clear event
-          // searchWidget.on("search-clear", function () {
-          //   searchWidget.activeSource.searchTerm = `%`;
-          // });
           searchWidget.sources = featureLayerSources;
           searchWidget.sources.push(geocoder);
-          // console.log(featureLayerSources);
         });
       });
     });
 
-    console.log(searchWidget.sources);
     webmap.when(() => {
       const { description, thumbnailUrl, avgRating } = webmap.portalItem;
       // configured in JSON, not the webmap any longer
