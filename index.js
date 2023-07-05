@@ -931,10 +931,10 @@ require([
       const assetLabel = document.querySelector("#assetLabel");
 
       // Expand to show first tab of Asset Locator App
-
+      // replace this url with track LRS endpoint
       if (lastClickedButtonId === "track") {
         fetch(
-          `https://mtagisdev.lirr.org/dosserverdev/rest/services/LRS/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/1/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue1}%22%2C%22measure%22%3A${inputValue2}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
+          `${trackLRSURL}/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue1}%22%2C%22measure%22%3A${inputValue2}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
           {
             method: "GET",
           }
@@ -983,7 +983,8 @@ require([
           });
       } else {
         fetch(
-          `https://mtagisdev.lirr.org/dosserverdev/rest/services/LRS/SIR_Track_Network/MapServer/exts/LRServer/networkLayers/1/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue1}%22%2C%22measure%22%3A${inputValue2}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
+          // replace this url with SIR LRS endpoint
+          `${sirLRSURL}/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue1}%22%2C%22measure%22%3A${inputValue2}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
           {
             method: "GET",
           }
@@ -1053,7 +1054,8 @@ require([
 
       if (lastClickedButtonId === "track") {
         fetch(
-          `https://mtagisdev.lirr.org/dosserverdev/rest/services/LRS/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/1/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue3}%22%2C%22fromMeasure%22%3A${inputValue4}%2C%22toMeasure%22%3A${inputValue5}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
+          // replace this url with track LRS endpoint
+          `${trackLRSURL}/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue3}%22%2C%22fromMeasure%22%3A${inputValue4}%2C%22toMeasure%22%3A${inputValue5}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
           {
             method: "GET",
           }
@@ -1082,12 +1084,8 @@ require([
 
             const simpleLineSymbol = {
               type: "simple-line",
-              color: [151, 8, 238], // Orange
+              color: [5, 250, 189], // Orange
               width: 5,
-              outline: {
-                color: [255, 255, 255],
-                width: 4,
-              },
             };
 
             const polylineGraphic = new Graphic({
@@ -1109,7 +1107,8 @@ require([
           });
       } else {
         fetch(
-          `https://mtagisdev.lirr.org/dosserverdev/rest/services/LRS/SIR_Track_Network/MapServer/exts/LRServer/networkLayers/1/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue3}%22%2C%22fromMeasure%22%3A${inputValue4}%2C%22toMeasure%22%3A${inputValue5}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
+          // replace this url with SIR LRS endpoint
+          `${sirLRSURL}/measureToGeometry?locations=%5B%7B%22routeId%22%3A%22${inputValue3}%22%2C%22fromMeasure%22%3A${inputValue4}%2C%22toMeasure%22%3A${inputValue5}%7D%5D&temporalViewDate=&outSR=4326&gdbVersion=&historicMoment=&f=json&token=${token}`,
           {
             method: "GET",
           }
@@ -1138,12 +1137,8 @@ require([
 
             const simpleLineSymbol = {
               type: "simple-line",
-              color: [151, 8, 238], // Orange
-              width: 5,
-              outline: {
-                color: [255, 255, 255],
-                width: 4,
-              },
+              color: [5, 250, 189], // Orange
+              width: 4,
             };
 
             const polylineGraphic = new Graphic({
@@ -1177,7 +1172,7 @@ require([
 
     // Logic for custom BasemapLayerList widget
     // When user selects another basemap to be visible, turn off all other basemaps
-    // cannot have two basemaps on at once
+    // cannot have two basemaps visible at once
     // Current issues with basemaps in test, add correct basemaps to webmap
 
     const basemaps = new BasemapLayerList({
