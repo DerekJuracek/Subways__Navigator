@@ -5,8 +5,8 @@
   "portalFolderURL": "https://gistest.mta.info/portal/sharing",
   "portalURLEquipment": "https://gistest.mta.info/agencies/rest/services/DOS_EAMPRD_EQUIPMENT",
   "stationPlansURL": "https://gistest.mta.info/agencies/rest/services/DOS_StationPlanGeoreferencing/StationPlans/ImageServer",
-  "trackLrsURL": "https://mtagistest.lirr.org/dosservertest/rest/services/Track/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/3",
-  "sirLrsURL": "https://mtagistest.lirr.org/dosservertest/rest/services/Track/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/3",
+  "trackLrsURL": "https://gistest.mta.info/geoprocessing/rest/services/DOS/DOS_Track_Network/MapServer/exts/LRServer/networkLayers/3",
+  "sirLrsURL": "https://gistest.mta.info/geoprocessing/rest/services/DOS/SIR_Track_Network/MapServer/exts/LRServer/networkLayers/3",
   "printURL": "https://gistest.mta.info/agencies/rest/services/DOS_PrintTemplates/DS_PRINT_SERVICE/GPServer/Export%20Web%20Map",
   "title": "Subways Navigator, TEST"
 }
